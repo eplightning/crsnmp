@@ -1,0 +1,13 @@
+name: crsnmp
+version: 0.1.0
+
+authors:
+  - Bartosz Sławianowski <wrexdot@gmail.com>
+
+targets:
+  crsnmp:
+    main: src/crsnmp.cr
+
+crystal: 0.23.1
+
+license: MIT
