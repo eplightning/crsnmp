@@ -125,7 +125,7 @@ module CrSNMP::MIBParser
     @@regex_object_id = /(?<identifier>[a-zA-Z0-9-_]+?)\s+OBJECT\sIDENTIFIER\s+::=\s+(?<oid>\{\s*([a-zA-Z0-9-_](\([0-9]+\))?+\s?)+\s*\})/m
     @@regex_type = /(?<identifier>[a-zA-Z0-9]+)\s+::=\s+(\[APPLICATION (?<application>[0-9]+)\]\s+)?(?<implicit>IMPLICIT\s+)?(?<rightHand>((OCTET STRING|INTEGER|NULL|OBJECT IDENTIFIER)(\s+\([a-zA-Z0-9\.\s\(\)]+\))?)|SEQUENCE\s+\{.+?\}|CHOICE\s+\{.+?\})/m
 
-    def extract(mib : String)
+    def extract(mib : String) : ExtractedMIB
       # komentarze usuwamy
       mib = mib.gsub @@regex_comment, ""
 
@@ -143,18 +143,17 @@ module CrSNMP::MIBParser
       # wszystkie symbole
       symbols = extract_symbols body
 
-      puts symbols
-
+      ExtractedMIB.new name, symbols, [] of ExtractedImport
     end
 
-    def extract_symbols(body : String) : Array(MIBSymbol)
-      symbols = [] of MIBSymbol
+    def extract_symbols(body : String) : Hash(String, MIBSymbol)
+      symbols = {} of String => MIBSymbol
 
       # identifier
       body.scan(@@regex_object_id) do |id_match|
         id = id_match["identifier"]
         oid = id_match["oid"]
-        symbols.push ObjectIdentifierSymbol.new(id, parse_oid(oid))
+        symbols[id] = ObjectIdentifierSymbol.new(id, parse_oid(oid))
       end
       body = body.gsub @@regex_object_id, ""
 
@@ -169,7 +168,7 @@ module CrSNMP::MIBParser
         description = id_match["description"]
         index = id_match["index"]?
 
-        symbols.push ObjectTypeSymbol.new(id, syntax, access, status, description, parse_oid(oid), index)
+        symbols[id] = ObjectTypeSymbol.new(id, syntax, access, status, description, parse_oid(oid), index)
       end
       body = body.gsub @@regex_object_type, ""
 
@@ -180,7 +179,7 @@ module CrSNMP::MIBParser
         implicit = id_match["implicit"]?
         definition = id_match["rightHand"]
 
-        symbols.push TypeDefinitionSymbol.new(id, definition, application.nil? ? nil : application.to_i8, !implicit.nil?)
+        symbols[id] = TypeDefinitionSymbol.new(id, definition, application.nil? ? nil : application.to_i8, !implicit.nil?)
       end
 
       symbols
