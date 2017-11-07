@@ -64,7 +64,7 @@ module CrSNMP::MIBParser
   struct ExtractedOID
     property fragments : Array(ExtractedOIDFragment)
 
-    def initialize(@fragments)
+    def initialize(@fragments = [] of ExtractedOIDFragment)
     end
   end
 

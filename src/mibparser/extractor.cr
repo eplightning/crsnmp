@@ -41,7 +41,7 @@ module CrSNMP::MIBParser
       name = structure["filename"]
       imports = extract_imports structure["imports"]?
       exports = extract_identifiers structure["exports"]?
-      symbols = extract_symbols body
+      symbols = extract_symbols name, body
 
       ExtractedMIB.new name, symbols, imports, exports
     end
@@ -66,14 +66,14 @@ module CrSNMP::MIBParser
       end
     end
 
-    private def extract_symbols(body : String) : Hash(String, MIBSymbol)
+    private def extract_symbols(mib : String, body : String) : Hash(String, MIBSymbol)
       symbols = {} of String => MIBSymbol
 
       # identifier
       body.scan(REGEX_OBJECT_ID) do |id_match|
         id = id_match["identifier"]
         oid = id_match["oid"]
-        symbols[id] = ObjectIdentifierSymbol.new(id, parse_oid(oid))
+        symbols[id] = ObjectIdentifierSymbol.new(id, mib, parse_oid(oid))
       end
       body = body.gsub REGEX_OBJECT_ID, ""
 
@@ -87,7 +87,7 @@ module CrSNMP::MIBParser
         description = id_match["description"]
         index = id_match["index"]?
 
-        symbols[id] = ObjectTypeSymbol.new(id, parse_type(syntax), access, status, description, parse_oid(oid), index)
+        symbols[id] = ObjectTypeSymbol.new(id, mib, parse_type(syntax), access, status, description, parse_oid(oid), index)
       end
       body = body.gsub REGEX_OBJECT_TYPE, ""
 
@@ -96,7 +96,7 @@ module CrSNMP::MIBParser
         id = id_match["identifier"]
         definition = id_match["rightHand"]
 
-        symbols[id] = TypeDefinitionSymbol.new(id, parse_type(definition))
+        symbols[id] = TypeDefinitionSymbol.new(id, mib, parse_type(definition))
       end
 
       symbols

@@ -4,16 +4,18 @@ module CrSNMP::MIBParser
 
   abstract class MIBSymbol
     property identifier : String
+    getter full_id : String
 
-    def initialize(@identifier)
+    def initialize(@identifier, mib : String)
+      @full_id = mib + "::" + @identifier
     end
   end
 
   class TypeDefinitionSymbol < MIBSymbol
     property definition : ExtractedType
 
-    def initialize(@identifier, @definition)
-      super @identifier
+    def initialize(@identifier, mib, @definition)
+      super @identifier, mib
     end
 
   end
@@ -26,8 +28,8 @@ module CrSNMP::MIBParser
     property oid : ExtractedOID
     property index : String | Nil
 
-    def initialize(@identifier, @syntax, @access, @status, @description, @oid, @index = "")
-      super @identifier
+    def initialize(@identifier, mib, @syntax, @access, @status, @description, @oid, @index = "")
+      super @identifier, mib
     end
 
   end
@@ -35,8 +37,8 @@ module CrSNMP::MIBParser
   class ObjectIdentifierSymbol < MIBSymbol
     property oid : ExtractedOID
 
-    def initialize(@identifier, @oid)
-      super @identifier
+    def initialize(@identifier, mib, @oid)
+      super @identifier, mib
     end
 
   end

@@ -8,12 +8,19 @@ module CrSNMP::MIBParser
     end
   end
 
+  class RootTreeNode
+    property children : Array(TreeNode)
+
+    def initialize(@children = [] of TreeNode)
+    end
+  end
+
   class TreeNode
-    property symbol : MIBSymbol
+    property object : MIBSymbol
     property oid : OID
     property children : Array(TreeNode)
 
-    def initialize(@symbol, @oid, @children = [] of TreeNode)
+    def initialize(@object, @oid, @children = [] of TreeNode)
     end
   end
 
