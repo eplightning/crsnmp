@@ -10,6 +10,7 @@ module CrSNMP::MIBParser
   REGEX_OBJECT_ID = /(?<identifier>[a-zA-Z0-9-_]+?)\s+OBJECT\sIDENTIFIER\s+::=\s+(?<oid>\{\s*([a-zA-Z0-9-_](\([0-9]+\))?+\s?)+\s*\})/m
   REGEX_TYPE = /(?<identifier>[a-zA-Z0-9]+)\s+::=\s+(?<rightHand>(\[APPLICATION ([0-9]+)\]\s+)?(IMPLICIT\s+)?(((OCTET STRING|INTEGER|NULL|OBJECT IDENTIFIER)(\s+\([a-zA-Z0-9\.\s\(\)]+\))?)|SEQUENCE\s+\{.+?\}|CHOICE\s+\{.+?\}))/m
   REGEX_IMPORT_LINE = /(?<identifiers>[a-zA-Z0-9,\s-_]+?)\sFROM\s+(?<filename>[a-zA-Z0-9-_]+)/m
+  REGEX_TYPE_RIGHTHAND = /((?<attribute>\[[a-zA-Z0-9\s]+\])\s*)?(?<implicit>IMPLICIT\s+)?(?<type>(OCTET STRING|INTEGER|NULL|OBJECT IDENTIFIER|SEQUENCE OF [a-zA-Z0-9-_]+|SEQUENCE\s+\{.+?\}|CHOICE\s+\{.+?\}))\s*(?<range>\([0-9-\s]+\.\.[0-9-\s]+\))?(?<size>\(\s*(SIZE|size)\s*\(.+?\)\))?/m
 
   class ExtractedMIB
     property symbols : Hash(String, MIBSymbol)
@@ -103,7 +104,23 @@ module CrSNMP::MIBParser
     end
 
     private def parse_type(definition : String) : ExtractedType
-      UnknownExtractedType.new definition
+      parsed = REGEX_TYPE_RIGHTHAND.match definition
+
+      if !parsed.nil?
+        implicit = parsed["implicit"]? ? true : false
+        attribute = parsed["attribute"]?
+        size = parsed["size"]?
+        range = parsed["range"]?
+
+        puts parsed
+        UnknownExtractedType.new definition
+      else
+        UnknownExtractedType.new definition
+      end
+    end
+
+    private def parse_size(size : String): ExtractedType::Size | Nil
+      nil
     end
 
     private def parse_oid(oid : String) : ExtractedOID

@@ -14,12 +14,12 @@ module CrSNMP::MIBParser
     abstract struct Size
     end
 
-    property attributes : Array(String)
+    property attribute : String | Nil
     property implicit : Bool
     property size : Size | Nil
     property range : Size | Nil
 
-    def initialize(@attributes = [] of String, @implicit = false, @size = nil, @range = nil)
+    def initialize(@attribute = nil, @implicit = false, @size = nil, @range = nil)
     end
   end
 
@@ -27,11 +27,33 @@ module CrSNMP::MIBParser
     property definition : String
 
     def initialize(@definition)
-      super [] of String
+      super nil
     end
 
     def to_s
       @definition
+    end
+  end
+
+  struct SymbolExtractedType < ExtractedType
+    property symbol_name : String
+
+    def initialize(@symbol_name, @attribute = nil, @implicit = false, @size = nil, @range = nil)
+      super @attribute, @implicit, @size, @range
+    end
+  end
+
+  struct PrimitiveExtractedType < ExtractedType
+    enum Primitive
+      OctetString
+      Integer
+      ObjectIdentifier
+      Null
+    end
+    property primitive : Primitive
+
+    def initialize(@primitive, @attribute = nil, @implicit = false, @size = nil, @range = nil)
+      super @attribute, @implicit, @size, @range
     end
   end
 
