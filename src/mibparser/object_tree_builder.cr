@@ -48,7 +48,6 @@ module CrSNMP::MIBParser
       symbol_name : String, root : RootTreeNode,
       node_map : Hash(String, TreeNode), symbols : Hash(String, MIBSymbol)
     ): TreeNode
-      puts "simple: " + symbol_name
       symbol = symbols[symbol_name]
 
       if !node_map.has_key?(symbol.full_id)
@@ -97,7 +96,6 @@ module CrSNMP::MIBParser
       frags : Array(ExtractedOIDFragment), root : RootTreeNode,
       node_map : Hash(String, TreeNode), symbols : Hash(String, MIBSymbol)
     ): TreeNode
-      puts "hinted"
       frag = frags.pop
 
       if frag.is_a?(ExtractedOIDSymbol)
