@@ -29,8 +29,8 @@ def recurs(tree : CrSNMP::MIBParser::RootTreeNode | CrSNMP::MIBParser::TreeNode,
     obj = tree.object
 
     if obj.is_a?(CrSNMP::MIBParser::ObjectTypeSymbol)
-      puts indent + "| Access: " + obj.access
-      puts indent + "| Status: " + obj.status
+      puts indent + "| Access: " + obj.access.to_s
+      puts indent + "| Status: " + obj.status.to_s
       puts indent + "| Description: " + obj.description[0..26] + "..."
       puts indent + "| Syntax: " + obj.syntax.class.name
 
