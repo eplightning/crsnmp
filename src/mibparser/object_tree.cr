@@ -10,13 +10,14 @@ module CrSNMP::MIBParser
 
   class RootTreeNode
     property children : Array(TreeNode)
+    property types : Hash(String, TypeDefinitionSymbol)
 
-    def initialize(@children = [] of TreeNode)
+    def initialize(@children = [] of TreeNode, @types = {} of String => TypeDefinitionSymbol)
     end
   end
 
   class TreeNode
-    property object : MIBSymbol
+    property object : ObjectIdentifierSymbol | ObjectTypeSymbol
     property oid : OID
     property children : Array(TreeNode)
 

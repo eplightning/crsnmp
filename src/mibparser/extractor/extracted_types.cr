@@ -19,13 +19,20 @@ module CrSNMP::MIBParser
 
     def initialize(@left, @right)
     end
+
+    def to_s
+      "Range(Left: " + @left.to_s + ", Right: " + @right.to_s + ")"
+    end
   end
 
   struct NumberExtractedSize < ExtractedSize
     property number : Int64
 
     def initialize(@number)
+    end
 
+    def to_s
+      "Number(" + @number.to_s + ")"
     end
   end
 
@@ -39,14 +46,13 @@ module CrSNMP::MIBParser
     end
 
     enum TagType
-      Default
       Implicit
       Explicit
     end
 
     property id : Int32 | Nil
     property tag : Tag | Nil
-    property tag_type : TagType
+    property tag_type : TagType | Nil
     property size : ExtractedSize | Nil
     property range : ExtractedSize | Nil
 
@@ -70,7 +76,7 @@ module CrSNMP::MIBParser
       when "EXPLICIT"
         TagType::Explicit
       else
-        TagType::Default
+        nil
       end
     end
   end
