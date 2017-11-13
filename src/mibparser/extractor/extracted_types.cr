@@ -9,17 +9,69 @@ module CrSNMP::MIBParser
     end
   end
 
+  # sizes
+  abstract struct ExtractedSize
+  end
+
+  struct RangeExtractedSize < ExtractedSize
+    property left : Int64
+    property right : Int64
+
+    def initialize(@left, @right)
+    end
+  end
+
+  struct NumberExtractedSize < ExtractedSize
+    property number : Int64
+
+    def initialize(@number)
+
+    end
+  end
+
   # types
   abstract struct ExtractedType
-    abstract struct Size
+    enum Tag
+      Application
+      Universal
+      ContextSpecific
+      Private
     end
 
-    property attribute : String | Nil
-    property implicit : Bool
-    property size : Size | Nil
-    property range : Size | Nil
+    enum TagType
+      Default
+      Implicit
+      Explicit
+    end
 
-    def initialize(@attribute = nil, @implicit = false, @size = nil, @range = nil)
+    property id : Int32 | Nil
+    property tag : Tag | Nil
+    property tag_type : TagType
+    property size : ExtractedSize | Nil
+    property range : ExtractedSize | Nil
+
+    def initialize(@id = nil, tag = nil, tag_type = nil, @size = nil, @range = nil)
+      @tag = case tag
+      when "APPLICATION"
+        Tag::Application
+      when "UNIVERSAL"
+        Tag::Universal
+      when "CONTEXT-SPECIFIC"
+        Tag::ContextSpecific
+      when "PRIVATE"
+        Tag::Private
+      else
+        nil
+      end
+
+      @tag_type = case tag_type
+      when "IMPLICIT"
+        TagType::Implicit
+      when "EXPLICIT"
+        TagType::Explicit
+      else
+        TagType::Default
+      end
     end
   end
 
@@ -38,8 +90,8 @@ module CrSNMP::MIBParser
   struct SymbolExtractedType < ExtractedType
     property symbol_name : String
 
-    def initialize(@symbol_name, @attribute = nil, @implicit = false, @size = nil, @range = nil)
-      super @attribute, @implicit, @size, @range
+    def initialize(@symbol_name, @id = nil, tag = nil, tag_type = nil, @size = nil, @range = nil)
+      super @id, tag, tag_type, @size, @range
     end
   end
 
@@ -52,8 +104,19 @@ module CrSNMP::MIBParser
     end
     property primitive : Primitive
 
-    def initialize(@primitive, @attribute = nil, @implicit = false, @size = nil, @range = nil)
-      super @attribute, @implicit, @size, @range
+    def initialize(primitive, @id = nil, tag = nil, tag_type = nil, @size = nil, @range = nil)
+      super @id, tag, tag_type, @size, @range
+
+      @primitive = case primitive
+      when "OCTET STRING"
+        Primitive::OctetString
+      when "INTEGER"
+        Primitive::Integer
+      when "OBJECT IDENTIFIER"
+        Primitive::ObjectIdentifier
+      else
+        Primitive::Null
+      end
     end
   end
 
