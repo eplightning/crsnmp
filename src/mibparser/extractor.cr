@@ -2,15 +2,15 @@ require "./extractor/*"
 
 module CrSNMP::MIBParser
 
-  REGEX_MIB = /(?<filename>[a-zA-Z0-9-_]+)\s*DEFINITIONS\s*::=\s*BEGIN\s*(IMPORTS\s*(?<imports>.+?)\s*;)?\s*(EXPORTS\s*(?<exports>.+?)\s*;)?\s*(?<body>.*)\s*END/m
+  REGEX_MIB = /(?<filename>[a-zA-Z0-9-_]+)\s*DEFINITIONS\s*::=\s*BEGIN\s*(IMPORTS\s*(?<imports>.+?)\s*;)?\s*(EXPORTS\s*(?<exports>.+?)\s*;)?\s*(?<body>.*)\s*END\s*/m
   REGEX_COMMENT = /--[^\n]*$/m
-  REGEX_MACRO = /OBJECT-TYPE\sMACRO\s::=\s+BEGIN.+?END/m
+  REGEX_MACRO = /[A-Z-]+\s+MACRO\s*::=\s*BEGIN.+?END/m
   REGEX_OID = /(?<oid>\{\s*([a-zA-Z0-9-_](\([0-9]+\))?+\s?)+\s*\})/
-  REGEX_OBJECT_TYPE = /(?<identifier>[a-zA-Z0-9]+)\s+OBJECT-TYPE\s+SYNTAX\s+(?<syntax>.+?)\s+ACCESS\s+(?<access>read-only|read-write|write-only|not-accessible)\s+STATUS\s+(?<status>mandatory|optional|obsolete)\s+DESCRIPTION\s+"(?<description>.+?)"\s+(INDEX\s+\{\s*(?<index>[\sa-zA-Z0-9,]+?)\s*\})?\s+::=\s+(?<oid>\{\s*([a-zA-Z0-9-_](\([0-9]+\))?+\s?)+\s*\})/m
+  REGEX_OBJECT_TYPE = /(?<identifier>[a-zA-Z0-9]+)\s+OBJECT-TYPE\s+SYNTAX\s+(?<syntax>.+?)\s+(ACCESS|MAX-ACCESS)\s+(?<access>read-only|read-write|write-only|not-accessible)\s+STATUS\s+(?<status>mandatory|optional|obsolete)\s+DESCRIPTION\s+"(?<description>.+?)"\s+(INDEX\s+\{\s*(?<index>[\sa-zA-Z0-9,]+?)\s*\})?\s+::=\s+(?<oid>\{\s*([a-zA-Z0-9-_](\([0-9]+\))?+\s?)+\s*\})/m
   REGEX_OBJECT_ID = /(?<identifier>[a-zA-Z0-9-_]+?)\s+OBJECT\sIDENTIFIER\s+::=\s+(?<oid>\{\s*([a-zA-Z0-9-_](\([0-9]+\))?+\s?)+\s*\})/m
-  REGEX_TYPE = /(?<identifier>[a-zA-Z0-9]+)\s+::=\s+(?<rightHand>(\[APPLICATION ([0-9]+)\]\s+)?(IMPLICIT\s+)?(((OCTET STRING|INTEGER|NULL|OBJECT IDENTIFIER)(\s+\([a-zA-Z0-9\.\s\(\)]+\))?)|SEQUENCE\s+\{.+?\}|CHOICE\s+\{.+?\}))/m
+  REGEX_TYPE = /(?<identifier>[a-zA-Z0-9]+)\s+::=\s+(?<rightHand>(\[(APPLICATION|UNIVERSAL|CONTEXT-SPECIFIC|PRIVATE)\s+([0-9]+)\]\s*)?((IMPLICIT|EXPLICIT)\s+)?((SEQUENCE\s+\{.+?\}|CHOICE\s+\{.+?\}|OCTET STRING|INTEGER(\s+\{.+?\})?|NULL|OBJECT IDENTIFIER|SEQUENCE OF [a-zA-Z0-9-_]+|[a-zA-Z0-9-_]+))\s*(\(\s*([0-9-]+\.\.[0-9-]+)\s*\))?\s*(\(\s*(SIZE|size|Size)\s*\((.+?)\)\s*\))?)/m
   REGEX_IMPORT_LINE = /(?<identifiers>[a-zA-Z0-9,\s-_]+?)\sFROM\s+(?<filename>[a-zA-Z0-9-_]+)/m
-  REGEX_TYPE_RIGHTHAND = /((?<attribute>\[[a-zA-Z0-9\s]+\])\s*)?(?<implicit>IMPLICIT\s+)?(?<type>(OCTET STRING|INTEGER|NULL|OBJECT IDENTIFIER|SEQUENCE OF [a-zA-Z0-9-_]+|SEQUENCE\s+\{.+?\}|CHOICE\s+\{.+?\}))\s*(?<range>\([0-9-\s]+\.\.[0-9-\s]+\))?(?<size>\(\s*(SIZE|size)\s*\(.+?\)\))?/m
+  REGEX_TYPE_RIGHTHAND = /(\[(?<visiblity>APPLICATION|UNIVERSAL|CONTEXT-SPECIFIC|PRIVATE)\s+(?<type_id>[0-9]+)\]\s*)?((?<implicit>IMPLICIT|EXPLICIT)\s+)?(?<type>(SEQUENCE\s+\{.+?\}|CHOICE\s+\{.+?\}|OCTET STRING|INTEGER(\s+\{.+?\})?|NULL|OBJECT IDENTIFIER|SEQUENCE OF [a-zA-Z0-9-_]+|[a-zA-Z0-9-_]+))\s*(\(\s*(?<range>[0-9-]+\.\.[0-9-]+)\s*\))?\s*(\(\s*(SIZE|size|Size)\s*\((?<size>.+?)\)\s*\))?/m
 
   class ExtractedMIB
     property symbols : Hash(String, MIBSymbol)
@@ -24,7 +24,6 @@ module CrSNMP::MIBParser
   end
 
   class Extractor
-
 
     def extract(mib : String) : ExtractedMIB
       # komentarze usuwamy
