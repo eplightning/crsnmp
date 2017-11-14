@@ -123,11 +123,40 @@ module CrSNMP::MIBParser
         elsif /^[a-zA-Z0-9-_]+$/.match(main)
           SymbolExtractedType.new main, id, tag, tag_type, size, range
         else
-          UnknownExtractedType.new definition
+          sequence_of = /^SEQUENCE OF ([a-zA-Z0-9-_]+)$/.match(main)
+          sequence = /^SEQUENCE\s+\{(.+?)\}$/m.match(main)
+          choice = /^CHOICE\s+\{(.+?)\}$/m.match(main)
+
+          if !sequence_of.nil?
+            subtype = parse_type sequence_of[1]
+            SequenceExtractedType.new({ "item" => subtype })
+          elsif !sequence.nil?
+            SequenceExtractedType.new parse_subtypes(sequence[1])
+          elsif !choice.nil?
+            ChoiceExtractedType.new parse_subtypes(choice[1])
+          else
+            UnknownExtractedType.new definition
+          end
         end
       else
         UnknownExtractedType.new definition
       end
+    end
+
+    private def parse_subtypes(data : String) : Hash(String, ExtractedType)
+      raw_items = extract_identifiers data
+
+      output = {} of String => ExtractedType
+
+      raw_items.each do |raw_item|
+        raw_item_split = raw_item.split 2
+
+        if raw_item_split.size == 2
+          output[raw_item_split[0]] = parse_type(raw_item_split[1])
+        end
+      end
+
+      output
     end
 
     private def parse_size(size : String | Nil): ExtractedSize | Nil

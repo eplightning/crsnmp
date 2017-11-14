@@ -53,6 +53,22 @@ module CrSNMP::Debug
       else
         printer.call "REFERENCJA NIE ROZWIĄZANA, TYP NIE ZNALEZIONY"
       end
+    elsif syntax.is_a? CrSNMP::MIBParser::SequenceExtractedType
+      printer.call "Sekwencja => "
+
+      syntax.items.each do |k, subitem|
+        printer.call " >>>>>>>>>>>> " + k
+        print_type subitem, root, printer
+        printer.call " <<<<<<<<<<<< " + k
+      end
+    elsif syntax.is_a? CrSNMP::MIBParser::ChoiceExtractedType
+      printer.call "Union (Choice) => "
+
+      syntax.choices.each do |k, subitem|
+        printer.call " >>>>>>>>>>>> " + k
+        print_type subitem, root, printer
+        printer.call " <<<<<<<<<<<< " + k
+      end
     else
       printer.call "Nieznany typ"
     end

@@ -126,6 +126,22 @@ module CrSNMP::MIBParser
     end
   end
 
+  struct ChoiceExtractedType < ExtractedType
+    property choices : Hash(String, ExtractedType)
+
+    def initialize(@choices, @id = nil, tag = nil, tag_type = nil, @size = nil, @range = nil)
+      super @id, tag, tag_type, @size, @range
+    end
+  end
+
+  struct SequenceExtractedType < ExtractedType
+    property items : Hash(String, ExtractedType)
+
+    def initialize(@items, @id = nil, tag = nil, tag_type = nil, @size = nil, @range = nil)
+      super @id, tag, tag_type, @size, @range
+    end
+  end
+
   # OID + fragments
   abstract struct ExtractedOIDFragment
   end
