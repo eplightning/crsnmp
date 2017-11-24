@@ -8,9 +8,9 @@ module CrSNMP::MIBParser
   REGEX_OID = /(?<oid>\{\s*([a-zA-Z0-9-_](\([0-9]+\))?+\s?)+\s*\})/
   REGEX_OBJECT_TYPE = /(?<identifier>[a-zA-Z0-9]+)\s+OBJECT-TYPE\s+SYNTAX\s+(?<syntax>.+?)\s+(ACCESS|MAX-ACCESS)\s+(?<access>read-only|read-write|write-only|not-accessible)\s+STATUS\s+(?<status>mandatory|optional|obsolete|deprecated)\s+DESCRIPTION\s+"(?<description>.+?)"\s+(INDEX\s+\{\s*(?<index>[\sa-zA-Z0-9,]+?)\s*\})?\s+::=\s+(?<oid>\{\s*([a-zA-Z0-9-_](\([0-9]+\))?+\s?)+\s*\})/m
   REGEX_OBJECT_ID = /(?<identifier>[a-zA-Z0-9-_]+?)\s+OBJECT\sIDENTIFIER\s+::=\s+(?<oid>\{\s*([a-zA-Z0-9-_](\([0-9]+\))?+\s?)+\s*\})/m
-  REGEX_TYPE = /(?<identifier>[a-zA-Z0-9]+)\s+::=\s+(?<rightHand>(\[(APPLICATION|UNIVERSAL|CONTEXT-SPECIFIC|PRIVATE)\s+([0-9]+)\]\s*)?((IMPLICIT|EXPLICIT)\s+)?((SEQUENCE\s+\{.+?\}|CHOICE\s+\{.+?\}|OCTET STRING|INTEGER(\s+\{.+?\})?|NULL|OBJECT IDENTIFIER|SEQUENCE OF [a-zA-Z0-9-_]+|[a-zA-Z0-9-_]+))\s*(\(\s*([0-9-]+\.\.[0-9-]+)\s*\))?\s*(\(\s*(SIZE|size|Size)\s*\((.+?)\)\s*\))?)/m
+  REGEX_TYPE = /(?<identifier>[a-zA-Z0-9]+)\s+::=\s+(?<rightHand>(\[(APPLICATION|UNIVERSAL|CONTEXT-SPECIFIC|PRIVATE)\s+([0-9]+)\]\s*)?((IMPLICIT|EXPLICIT)\s+)?((SEQUENCE\s+\{.+?\}|CHOICE\s+\{.+?\}|OCTET STRING|INTEGER(\s+\{.+?\})?|BOOLEAN|NULL|OBJECT IDENTIFIER|SEQUENCE OF [a-zA-Z0-9-_]+|[a-zA-Z0-9-_]+))\s*(\(\s*([0-9-]+\.\.[0-9-]+)\s*\))?\s*(\(\s*(SIZE|size|Size)\s*\((.+?)\)\s*\))?)/m
   REGEX_IMPORT_LINE = /(?<identifiers>[a-zA-Z0-9,\s-_]+?)\sFROM\s+(?<filename>[a-zA-Z0-9-_]+)/m
-  REGEX_TYPE_RIGHTHAND = /(\[(?<visibility>APPLICATION|UNIVERSAL|CONTEXT-SPECIFIC|PRIVATE)\s+(?<type_id>[0-9]+)\]\s*)?((?<implicit>IMPLICIT|EXPLICIT)\s+)?(?<type>(SEQUENCE\s+\{.+?\}|CHOICE\s+\{.+?\}|OCTET STRING|INTEGER(\s+\{.+?\})?|NULL|OBJECT IDENTIFIER|SEQUENCE OF [a-zA-Z0-9-_]+|[a-zA-Z0-9-_]+))\s*(\(\s*(?<range>[0-9-]+\.\.[0-9-]+)\s*\))?\s*(\(\s*(SIZE|size|Size)\s*\((?<size>.+?)\)\s*\))?/m
+  REGEX_TYPE_RIGHTHAND = /(\[(?<visibility>APPLICATION|UNIVERSAL|CONTEXT-SPECIFIC|PRIVATE)\s+(?<type_id>[0-9]+)\]\s*)?((?<implicit>IMPLICIT|EXPLICIT)\s+)?(?<type>(SEQUENCE\s+\{.+?\}|CHOICE\s+\{.+?\}|OCTET STRING|INTEGER(\s+\{.+?\})?|BOOLEAN|NULL|OBJECT IDENTIFIER|SEQUENCE OF [a-zA-Z0-9-_]+|[a-zA-Z0-9-_]+))\s*(\(\s*(?<range>[0-9-]+\.\.[0-9-]+)\s*\))?\s*(\(\s*(SIZE|size|Size)\s*\((?<size>.+?)\)\s*\))?/m
 
   class ExtractedMIB
     property symbols : Hash(String, MIBSymbol)
@@ -116,7 +116,8 @@ module CrSNMP::MIBParser
 
         main = parsed["type"]
 
-        if main == "OCTET STRING" || main == "INTEGER" || main == "NULL" || main == "OBJECT IDENTIFIER"
+        if main == "OCTET STRING" || main == "INTEGER" ||
+          main == "NULL" || main == "OBJECT IDENTIFIER" || main == "BOOLEAN"
           PrimitiveExtractedType.new main, id, tag, tag_type, size, range
         elsif main.starts_with? "INTEGER "
           PrimitiveExtractedType.new "INTEGER", id, tag, tag_type, size, range

@@ -107,6 +107,7 @@ module CrSNMP::MIBParser
       Integer
       ObjectIdentifier
       Null
+      Boolean
     end
     property primitive : Primitive
 
@@ -120,6 +121,8 @@ module CrSNMP::MIBParser
         Primitive::Integer
       when "OBJECT IDENTIFIER"
         Primitive::ObjectIdentifier
+      when "BOOLEAN"
+        Primitive::Boolean
       else
         Primitive::Null
       end
