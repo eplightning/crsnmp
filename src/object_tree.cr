@@ -1,16 +1,11 @@
 
-module CrSNMP::MIBParser
+module CrSNMP
 
-  struct OID
-    property index : Int32
 
-    def initialize(@index)
-    end
-  end
 
   class RootTreeNode
     property children : Array(TreeNode)
-    property types : Hash(String, TypeDefinitionSymbol)
+    property global_types : Hash(String, TypeDefinitionSymbol)
 
     def initialize(@children = [] of TreeNode, @types = {} of String => TypeDefinitionSymbol)
     end
@@ -20,8 +15,10 @@ module CrSNMP::MIBParser
     property object : ObjectIdentifierSymbol | ObjectTypeSymbol
     property oid : OID
     property children : Array(TreeNode)
+    property resolved_type : Nil
 
     def initialize(@object, @oid, @children = [] of TreeNode)
+      @resolved_type = nil
     end
   end
 

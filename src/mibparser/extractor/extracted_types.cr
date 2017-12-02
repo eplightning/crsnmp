@@ -51,7 +51,7 @@ module CrSNMP::MIBParser
     end
 
     property id : Int32 | Nil
-    property tag : Tag | Nil
+    property tag : Tag
     property tag_type : TagType | Nil
     property size : ExtractedSize | Nil
     property range : ExtractedSize | Nil
@@ -67,7 +67,7 @@ module CrSNMP::MIBParser
       when "PRIVATE"
         Tag::Private
       else
-        nil
+        Tag::ContextSpecific
       end
 
       @tag_type = case tag_type
@@ -141,6 +141,14 @@ module CrSNMP::MIBParser
     property items : Hash(String, ExtractedType)
 
     def initialize(@items, @id = nil, tag = nil, tag_type = nil, @size = nil, @range = nil)
+      super @id, tag, tag_type, @size, @range
+    end
+  end
+
+  struct SequenceOfExtractedType < ExtractedType
+    property item : ExtractedType
+
+    def initialize(@item, @id = nil, tag = nil, tag_type = nil, @size = nil, @range = nil)
       super @id, tag, tag_type, @size, @range
     end
   end

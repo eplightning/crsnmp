@@ -1,8 +1,8 @@
-require "./extractor"
+require "./extractor/extractor"
 require "./object_tree"
 require "./file_resolver"
 
-module CrSNMP::MIBParser
+module CrSNMP
 
   class ObjectTreeBuilder
     alias SymbolMap = Hash(String, MIBSymbol)
@@ -27,7 +27,7 @@ module CrSNMP::MIBParser
 
     private def insert_initial_nodes(root : RootTreeNode, node_map : NodeMap, symbol_map : SymbolMap)
       iso_symbol = ObjectIdentifierSymbol.new("iso", "iso", ExtractedOID.new)
-      iso_node = TreeNode.new iso_symbol, OID.new(1)
+      iso_node = TreeNode.new iso_symbol, OID.new(nil, 1)
 
       node_map["iso::iso"] = iso_node
       symbol_map["iso"] = iso_symbol
@@ -90,10 +90,8 @@ module CrSNMP::MIBParser
             raise "weird oid structure"
           end
 
-          node = create_node symbol, last_frag.number
+          node = create_node symbol, last_frag.number, parent
           node_map[symbol.full_id] = node
-
-          parent.children.push node
 
           node
         else
@@ -120,12 +118,11 @@ module CrSNMP::MIBParser
         if symbols.has_key?(frag.symbol_name)
           build_simple_parent(frag.symbol_name, root, node_map, symbols)
         else
+          parent = build_hinted_parent(frags, root, node_map, symbols)
           num = frag.number
           symbol = ObjectIdentifierSymbol.new(frag.symbol_name, frag.symbol_name, ExtractedOID.new)
-          node = create_node symbol, num
+          node = create_node symbol, num, parent
           node_map[symbol.full_id] = node
-          parent = build_hinted_parent(frags, root, node_map, symbols)
-          parent.children.push node
           node
         end
       else
@@ -133,8 +130,10 @@ module CrSNMP::MIBParser
       end
     end
 
-    private def create_node(symbol : MIBSymbol, idx : Int32) : TreeNode
-      TreeNode.new symbol, OID.new(idx)
+    private def create_node(symbol : MIBSymbol, idx : Int32, parent : TreeNode) : TreeNode
+      node = TreeNode.new symbol, OID.new(parent.oid, idx)
+      parent.children.push node
+      node
     end
 
     private def load_imports(entrypoint : String, import : Array(ExtractedImport)) : Hash(String, ExtractedMIB)

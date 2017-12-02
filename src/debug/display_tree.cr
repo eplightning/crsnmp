@@ -2,12 +2,12 @@ module CrSNMP::Debug
 
   def self.print_object_tree(root : CrSNMP::MIBParser::RootTreeNode)
     root.children.each do |child|
-      print_recursive child, root, child.oid.index.to_s + ".", "-"
+      print_recursive child, root, "-"
     end
   end
 
-  private def self.print_recursive(tree : CrSNMP::MIBParser::TreeNode, root : CrSNMP::MIBParser::RootTreeNode, prefix, indent)
-    puts indent + "| " + prefix + ": " + tree.object.identifier
+  private def self.print_recursive(tree : CrSNMP::MIBParser::TreeNode, root : CrSNMP::MIBParser::RootTreeNode, indent)
+    puts indent + "| " + tree.oid.to_s + ": " + tree.object.identifier
 
     puts indent + "| " + tree.object.to_s
 
@@ -25,7 +25,7 @@ module CrSNMP::Debug
     puts
 
     tree.children.each do |child|
-      print_recursive child, root, prefix + child.oid.index.to_s + ".", indent + "-"
+      print_recursive child, root, indent + "-"
     end
   end
 
@@ -53,6 +53,9 @@ module CrSNMP::Debug
       else
         printer.call "REFERENCJA NIE ROZWIĄZANA, TYP NIE ZNALEZIONY"
       end
+    elsif syntax.is_a? CrSNMP::MIBParser::ArrayExtractedType
+      printer.call "Array => "
+      print_type syntax.item, root, printer
     elsif syntax.is_a? CrSNMP::MIBParser::SequenceExtractedType
       printer.call "Sekwencja => "
 

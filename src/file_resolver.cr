@@ -1,4 +1,4 @@
-module CrSNMP::MIBParser
+module CrSNMP
 
   abstract class FileResolver
     abstract def load(mib)
