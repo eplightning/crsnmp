@@ -1,6 +1,7 @@
 module CrSNMP::BER
 
   class Encoder
+
     def self.encode_tag(tag : Tag, primitive = false) : Array(UInt8)
       if tag.index < 0
         raise "Invalid tag index"
@@ -16,43 +17,7 @@ module CrSNMP::BER
       else
         first_byte |= 31
 
-        octets = [0_u8, 0_u8, 0_u8, 0_u8, 0_u8]
-        idx = tag.index
-        remainders = [] of UInt8
-
-        4.times do |ti|
-          octet = (idx & 0xFF).to_u8
-          idx = idx >> 8
-
-          new_remainders = [] of UInt8
-
-          remainders.each do |v|
-            new_remainders << (((octet & 0x80) == 0x80) ? 1_u8 : 0_u8)
-            octet = octet << 1
-            octet |= v
-          end
-
-          new_remainders << (((octet & 0x80) == 0x80) ? 1_u8 : 0_u8)
-          octet &= ~0x80
-          remainders = new_remainders
-
-          octets[4 - ti] = octet
-        end
-
-        remainders.each_index do |i|
-          octets[0] |= (remainders[i] << i)
-        end
-
-        4.times do
-          if octets[0] == 0
-            octets.shift
-          else
-            octets.map_with_index! { |i, index| (index == octets.size - 1) ? i : i | 0x80 }
-            break
-          end
-        end
-
-        [first_byte].concat octets
+        [first_byte].concat encode_variable7bit(tag.index)
       end
     end
 
@@ -78,7 +43,7 @@ module CrSNMP::BER
       end
     end
 
-    def self.encode_int(number: Int64) : Array(UInt8)
+    def self.encode_int(number : Int64) : Array(UInt8)
       negative = int < 0
       uint = int.abs.to_u64
 
@@ -113,16 +78,64 @@ module CrSNMP::BER
       octets
     end
 
-    def self.encode_string(string: String) : Array(UInt8)
-      [] of UInt8
+    def self.encode_string(string : String) : Array(UInt8)
+      string.bytes
     end
 
-    def self.encode_oid(oid: OID) : Array(UInt8)
-      [] of UInt8
+    def self.encode_oid(oid : OID) : Array(UInt8)
+      if oid.fragments.size < 2
+        raise "OID with less than 2 fragments"
+      end
+
+      combined = [oid.fragments[0].index * 40 + oid.fragments[1].index]
+      combined.concat oid.fragments[2..-1].map { |f| f.index }
+
+      combined.flat_map do |idx|
+        encode_variable7bit idx
+      end
     end
 
-    def self.encode_bool(bool: Bool) : Array(UInt8)
+    def self.encode_bool(bool : Bool) : Array(UInt8)
       bool ? [0xFF_u8] : [0x00_u8]
+    end
+
+    private def self.encode_variable7bit(idx : Int32) : Array(UInt8)
+      octets = [0_u8, 0_u8, 0_u8, 0_u8, 0_u8]
+      remainders = [] of UInt8
+
+      4.times do |ti|
+        octet = (idx & 0xFF).to_u8
+        idx = idx >> 8
+
+        new_remainders = [] of UInt8
+
+        remainders.each do |v|
+          new_remainders << (((octet & 0x80) == 0x80) ? 1_u8 : 0_u8)
+          octet = octet << 1
+          octet |= v
+        end
+
+        new_remainders << (((octet & 0x80) == 0x80) ? 1_u8 : 0_u8)
+        octet &= ~0x80
+        remainders = new_remainders
+
+        octets[4 - ti] = octet
+      end
+
+      remainders.each_index do |i|
+        octets[0] |= (remainders[i] << i)
+      end
+
+      4.times do
+        if octets[0] == 0
+          octets.shift
+        else
+          octets.map_with_index! { |i, index| (index == octets.size - 1) ? i : i | 0x80 }
+          break
+        end
+      end
+
+      octets
     end
 
   end
