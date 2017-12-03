@@ -51,7 +51,7 @@ module CrSNMP::BER
           i = i - 1
         end
 
-        {first_byte.to_i32, output.to_i32}
+        {first_byte.to_i32 + 1, output.to_i32}
       else
         {1, first_byte.to_i32}
       end
