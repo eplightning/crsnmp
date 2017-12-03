@@ -36,8 +36,8 @@ module CrSNMP::BER
   end
 
   enum TagClass
-    Application
     Universal
+    Application
     ContextSpecific
     Private
   end

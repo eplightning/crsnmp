@@ -154,13 +154,6 @@ module CrSNMP::BER
         raise "Invalid tag or P/C biy"
       end
 
-      decoded_len = Decoder.decode_length bytes
-      bytes = decoded_len[0]
-
-      if decoded_len[1] > bytes.size
-        raise "Not enough bytes"
-      end
-
       left = raw[:header_size]
       right = raw[:header_size] + raw[:length]
 
