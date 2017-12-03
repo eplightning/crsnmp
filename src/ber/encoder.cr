@@ -117,7 +117,7 @@ module CrSNMP::BER
 
         new_remainders << (((octet & 0x80) == 0x80) ? 1_u8 : 0_u8)
         octet &= ~0x80
-        remainders = new_remainders
+        remainders = new_remainders.reverse
 
         octets[4 - ti] = octet
       end

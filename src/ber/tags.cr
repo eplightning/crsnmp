@@ -35,7 +35,7 @@ module CrSNMP::BER
     Explicit
   end
 
-  enum TagClass
+  enum TagClass : UInt8
     Universal
     Application
     ContextSpecific
