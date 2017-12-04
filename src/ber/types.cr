@@ -83,7 +83,7 @@ module CrSNMP::BER
     end
 
     def decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
-      final_tag = (implicit_tag.nil? ? universal_tag : implicit_tag)
+      final_tag = (implicit_tag.nil? ? SequenceDataType.universal_tag : implicit_tag)
       contents = decode_header bytes, false, final_tag
 
       items = [] of SequenceDataValue::Item
@@ -121,7 +121,7 @@ module CrSNMP::BER
           content.concat resolved_type[1].encode(i.data)
         end
 
-        final_tag = implicit_tag.nil? ? universal_tag : implicit_tag
+        final_tag = implicit_tag.nil? ? SequenceDataType.universal_tag : implicit_tag
         encode_content content, false, final_tag
       else
         raise "Invalid data, expected SequenceDataValue"
@@ -145,7 +145,7 @@ module CrSNMP::BER
     end
 
     def decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
-      final_tag = (implicit_tag.nil? ? universal_tag : implicit_tag)
+      final_tag = (implicit_tag.nil? ? ArrayDataType.universal_tag : implicit_tag)
       contents = decode_header bytes, false, final_tag
 
       items = [] of SequenceDataValue::Item
@@ -183,7 +183,7 @@ module CrSNMP::BER
           content.concat resolved_type[1].encode(i.data)
         end
 
-        final_tag = implicit_tag.nil? ? universal_tag : implicit_tag
+        final_tag = implicit_tag.nil? ? ArrayDataType.universal_tag : implicit_tag
         encode_content content, false, final_tag
       else
         raise "Invalid data, expected SequenceDataValue"
@@ -219,7 +219,7 @@ module CrSNMP::BER
         raise "Invalid choice item tag"
       end
 
-      resolved_type.decode bytes, nil
+      resolved_type[1].decode bytes, nil
     end
 
     def encode(data : DataValue, implicit_tag : Tag | Nil = nil) : Array(UInt8)
@@ -233,7 +233,7 @@ module CrSNMP::BER
         raise "Invalid choice item tag"
       end
 
-      resolved_type.encode data, implicit_tag
+      resolved_type[1].encode data, implicit_tag
     end
 
     def tags : Array(Tag)
@@ -414,7 +414,7 @@ module CrSNMP::BER
 
       validation = out.passes_restrictions @restrictions
 
-      if !validation.is_nil?
+      if !validation.nil?
         raise validation
       end
 
@@ -424,14 +424,16 @@ module CrSNMP::BER
     def encode(data : DataValue, implicit_tag : Tag | Nil = nil) : Array(UInt8)
       validation = data.passes_restrictions @restrictions
 
-      if !validation.is_nil?
+      if !validation.nil?
         raise validation
       end
 
-      if @type_tag.nil?
+      tag = @type_tag
+
+      if tag.nil?
         parent.encode data, implicit_tag
       else
-        final_tag = (implicit_tag.nil? ? @type_tag : implicit_tag)
+        final_tag = (implicit_tag.nil? ? tag : implicit_tag)
 
         if @tagging_mode == TaggingMode::Implicit
           parent.encode data, final_tag

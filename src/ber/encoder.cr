@@ -26,7 +26,7 @@ module CrSNMP::BER
       end
     end
 
-    def self.encode_length(length : Int32) : Array(UInt8)
+    def self.encode_length(len : Int32) : Array(UInt8)
       if len < 0
         raise "Invalid length"
       end
@@ -48,7 +48,7 @@ module CrSNMP::BER
       end
     end
 
-    def self.encode_int(number : Int64) : Array(UInt8)
+    def self.encode_int(int : Int64) : Array(UInt8)
       negative = int < 0
       uint = int.abs.to_u64
 
