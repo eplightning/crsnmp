@@ -77,9 +77,10 @@ module CrSNMP::BER
   end
 
   class SequenceDataType < CompositeDataType
+    getter items : Hash(String, DataType)
 
-    def initialize(@types : Hash(String, DataType))
-      @resolver = TagResolver.new @types
+    def initialize(@items)
+      @resolver = TagResolver.new @items
     end
 
     def decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
@@ -138,9 +139,10 @@ module CrSNMP::BER
   end
 
   class ArrayDataType < CompositeDataType
+    getter item : DataType
 
-    def initialize(@type : DataType)
-      @resolver = TagResolver.new @type
+    def initialize(@item)
+      @resolver = TagResolver.new @item
     end
 
     def decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
@@ -199,8 +201,9 @@ module CrSNMP::BER
   end
 
   class ChoiceDataType < CompositeDataType
+    getter items : Hash(String, DataType)
 
-    def initialize(@types : Hash(String, DataType))
+    def initialize(@types)
       @resolver = TagResolver.new @types
     end
 
