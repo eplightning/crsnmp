@@ -1,3 +1,8 @@
+require "../shared/tags"
+require "./types"
+
+include CrSNMP::Shared
+
 module CrSNMP::BER
 
   class TagResolver
@@ -27,34 +32,6 @@ module CrSNMP::BER
 
     def resolve?(tag : Tag) : Tuple(String, DataType) | Nil
       @map[tag]?
-    end
-  end
-
-  enum TaggingMode
-    Implicit
-    Explicit
-  end
-
-  enum TagClass : UInt8
-    Universal
-    Application
-    ContextSpecific
-    Private
-  end
-
-  struct Tag
-    getter index : Int32
-    getter cls : TagClass
-
-    def initialize(@index, @cls)
-    end
-
-    def ==(other : Tag) : Bool
-      return other.index == @index && other.cls == @cls;
-    end
-
-    def !=(other : Tag) : Bool
-      return other.index != @index || other.cls != @cls;
     end
   end
 

@@ -130,7 +130,7 @@ module CrSNMP::MIBParser
 
           if !sequence_of.nil?
             subtype = parse_type sequence_of[1]
-            ArrayExtractedType.new(subtype)
+            SequenceOfExtractedType.new(subtype)
           elsif !sequence.nil?
             SequenceExtractedType.new parse_subtypes(sequence[1])
           elsif !choice.nil?

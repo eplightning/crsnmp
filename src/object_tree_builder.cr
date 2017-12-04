@@ -1,6 +1,8 @@
 require "./extractor/extractor"
-require "./object_tree"
 require "./file_resolver"
+require "./object_tree"
+require "./mib_to_ber"
+require "./shared/*"
 
 module CrSNMP
 
@@ -46,14 +48,23 @@ module CrSNMP
         all_symbols.merge! v.symbols
       end
 
+      # get all global types
+      types = {} of String => TypeDefinitionSymbol
       all_symbols.each do |symbol_name, symbol|
-        if symbol.is_a?(ObjectTypeSymbol) || symbol.is_a?(ObjectIdentifierSymbol)
-          build_simple_parent(symbol_name, root, node_map, all_symbols)
-        elsif symbol.is_a?(TypeDefinitionSymbol)
-          root.types[symbol_name] = symbol
+        if symbol.is_a?(TypeDefinitionSymbol)
+          types[symbol_name] = symbol
         end
       end
 
+      # init converter
+      @converter = MIBBERTypeConverter.new types
+
+      # build tree
+      all_symbols.each do |symbol_name, symbol|
+        if symbol.is_a?(ObjectTypeSymbol) || symbol.is_a?(ObjectIdentifierSymbol)
+          build_simple_parent(symbol_name, root, node_map, all_symbols)
+        end
+      end
     end
 
     private def build_simple_parent(
@@ -131,7 +142,14 @@ module CrSNMP
     end
 
     private def create_node(symbol : MIBSymbol, idx : Int32, parent : TreeNode) : TreeNode
-      node = TreeNode.new symbol, OID.new(parent.oid, idx)
+      oid = OID.new(parent.oid, idx)
+
+      if symbol.is_a?(ObjectTypeSymbol)
+        node = TreeNode.new symbol.object_type, @converter.convert(symbol.syntax), oid, symbol.identifier
+      else
+        node = TreeNode.new nil, nil, oid, symbol.identifier
+      end
+
       parent.children.push node
       node
     end

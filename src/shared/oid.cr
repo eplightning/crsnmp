@@ -1,4 +1,4 @@
-module CrSNMP::BER
+module CrSNMP::Shared
 
   struct OIDFragment
     getter index : Int32

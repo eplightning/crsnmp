@@ -1,4 +1,7 @@
 require "./extracted_types"
+require "../../shared/oid"
+
+include CrSNMP::Shared
 
 module CrSNMP::MIBParser
 
@@ -21,51 +24,37 @@ module CrSNMP::MIBParser
   end
 
   class ObjectTypeSymbol < MIBSymbol
-    enum Access
-      ReadOnly
-      ReadWrite
-      WriteOnly
-      NotAccessible
-    end
-
-    enum Status
-      Mandatory
-      Optional
-      Obsolete
-      Deprecated
-    end
-
+    property object_type : ObjectType
     property syntax : ExtractedType
-    property access : Access
-    property status : Status
-    property description : String
     property oid : ExtractedOID
     property index : String | Nil
 
-    def initialize(@identifier, mib, @syntax, access, status, @description, @oid, @index = "")
+    def initialize(@identifier, mib, @syntax, access, status, description, @oid, @index = "")
       super @identifier, mib
 
-      @access = case access
+      access_val = case access
       when "read-only"
-        Access::ReadOnly
+        ObjectType::Access::ReadOnly
       when "read-write"
-        Access::ReadWrite
+        ObjectType::Access::ReadWrite
       when "write-only"
-        Access::WriteOnly
+        ObjectType::Access::WriteOnly
       else
-        Access::NotAccessible
+        ObjectType::Access::NotAccessible
       end
 
-      @status = case status
+      status_val = case status
       when "mandatory"
-        Status::Mandatory
+        ObjectType::Status::Mandatory
       when "optional"
-        Status::Optional
+        ObjectType::Status::Optional
       when "obsolete"
-        Status::Obsolete
+        ObjectType::Status::Obsolete
       else
-        Status::Deprecated
+        ObjectType::Status::Deprecated
       end
+
+      @object_type = ObjectType.new access_val, status_val, description
     end
 
   end

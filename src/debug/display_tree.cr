@@ -7,19 +7,20 @@ module CrSNMP::Debug
   end
 
   private def self.print_recursive(tree : CrSNMP::MIBParser::TreeNode, root : CrSNMP::MIBParser::RootTreeNode, indent)
-    puts indent + "| " + tree.oid.to_s + ": " + tree.object.identifier
+    puts indent + "| " + tree.oid.to_s + ": " + tree.identifier
 
-    puts indent + "| " + tree.object.to_s
+    puts indent + "| " + tree.syntax.to_s
 
-    obj = tree.object
+    obj_type = tree.object_type
+    syntax = tree.syntax
 
-    if obj.is_a?(CrSNMP::MIBParser::ObjectTypeSymbol)
-      puts indent + "| Access: " + obj.access.to_s
-      puts indent + "| Status: " + obj.status.to_s
-      puts indent + "| Description: " + obj.description[0..26] + "..."
-      puts indent + "| Syntax: (klasa) " + obj.syntax.class.name
+    if !obj_type.nil? && !syntax.nil?
+      puts indent + "| Access: " + obj_type.access.to_s
+      puts indent + "| Status: " + obj_type.status.to_s
+      puts indent + "| Description: " + obj_type.description[0..26] + "..."
+      puts indent + "| Syntax: (klasa) " + syntax.class.name
 
-      print_type obj.syntax, root, ->(x: String) { puts indent + "| " + x }
+      print_type syntax, root, ->(x: String) { puts indent + "| " + x }
     end
 
     puts
@@ -30,7 +31,7 @@ module CrSNMP::Debug
   end
 
   private def self.print_type(
-    syntax : CrSNMP::MIBParser::ExtractedType,
+    syntax : CrSNMP::BER::DataType,
     root : CrSNMP::MIBParser::RootTreeNode, printer : Proc(String, Nil))
 
     printer.call "ID: " + (syntax.id.nil? ? "---" : syntax.id.to_s)

@@ -1,0 +1,28 @@
+MY-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+        mgmt, NetworkAddress, IpAddress, Counter, Gauge,
+                TimeTicks
+            FROM RFC1155-SMI
+        OBJECT-TYPE
+                FROM RFC-1212;
+
+magia      OBJECT IDENTIFIER ::= { mgmt 1 }
+
+DisplayString ::=
+    OCTET STRING
+
+sysDescr OBJECT-TYPE
+    SYNTAX  DisplayString (SIZE (0..255))
+    ACCESS  read-only
+    STATUS  mandatory
+    DESCRIPTION
+            "A textual description of the entity.  This value
+            should include the full name and version
+            identification of the system's hardware type,
+            software operating-system, and networking
+            software.  It is mandatory that this only contain
+            printable ASCII characters."
+    ::= { magia 1 }
+
+END

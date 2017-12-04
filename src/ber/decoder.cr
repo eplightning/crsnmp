@@ -1,3 +1,8 @@
+require "../shared/oid"
+require "../shared/tags"
+
+include CrSNMP::Shared
+
 module CrSNMP::BER
 
   class Decoder
@@ -70,11 +75,6 @@ module CrSNMP::BER
       end
 
       unsigned.to_i64
-    end
-
-    def self.decode_string(bytes : Array(UInt8)) : String
-      slice = Slice.new bytes.to_unsafe, bytes.size
-      String.new slice, "ASCII", :skip
     end
 
     def self.decode_oid(bytes : Array(UInt8)) : OID

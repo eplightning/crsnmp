@@ -1,146 +1,14 @@
+require "../shared/oid"
+require "../shared/tags"
+require "./restrictions"
+require "./values"
+require "./decoder"
+require "./encoder"
+require "./tag_resolver"
+
+include CrSNMP::Shared
 
 module CrSNMP::BER
-
-
-
-  class Restrictions
-    getter size : Restriction | Nil
-    getter value : Restriction | Nil
-
-    def initialize(@size = nil, @value = nil)
-    end
-  end
-
-  abstract class Restriction
-  end
-
-  class RangeRestriction < Restriction
-    property left : Int64
-    property right : Int64
-
-    def initialize(@left, @right)
-    end
-
-    def to_s
-      "Range(Left: " + @left.to_s + ", Right: " + @right.to_s + ")"
-    end
-  end
-
-  class NumberRestriction < Restriction
-    property number : Int64
-
-    def initialize(@number)
-    end
-
-    def to_s
-      "Number(" + @number.to_s + ")"
-    end
-  end
-
-  abstract struct DataValue
-    property tag : Tag
-
-    def initialize(@tag)
-    end
-
-    abstract def passes_restrictions(restrictions : Restrictions) : String | Nil
-  end
-
-  struct SequenceDataValue < DataValue
-    struct Item
-      getter data : DataValue
-      getter name : String | Nil
-
-      def initialize(@data, @name = nil)
-      end
-
-      def to_s
-        @name
-      end
-    end
-
-    getter items : Array(Item)
-
-    def initialize(@items, tag : Tag | Nil = nil)
-      super tag.nil? ? SequenceDataType.universal_tag : tag
-    end
-
-    def passes_restrictions(restrictions : Restrictions) : String | Nil
-      nil
-    end
-  end
-
-  struct IntegerDataValue < DataValue
-    getter val : Int64
-
-    def initialize(@val, tag : Tag | Nil = nil)
-      super tag.nil? ? IntegerDataType.universal_tag : tag
-    end
-
-    def passes_restrictions(restrictions : Restrictions) : String | Nil
-      valuer = restrictions.value
-
-      if !valuer.nil?
-        if valuer.is_a?(RangeRestriction)
-          if valuer.left > @val || valuer.right < @val
-            "Int range restriction not passed"
-          end
-        elsif valuer.is_a?(NumberRestriction)
-          if valuer.number != @val
-            "Int num restriction not passed"
-          end
-        end
-      end
-
-      nil
-    end
-  end
-
-  struct NullDataValue < DataValue
-    def initialize(tag : Tag | Nil = nil)
-      super tag.nil? ? NullDataType.universal_tag : tag
-    end
-
-    def passes_restrictions(restrictions : Restrictions) : String | Nil
-      nil
-    end
-  end
-
-  struct OctetStringDataValue < DataValue
-    getter val : String
-
-    def initialize(@val, tag : Tag | Nil = nil)
-      super tag.nil? ? OctetStringDataType.universal_tag : tag
-    end
-
-    def passes_restrictions(restrictions : Restrictions) : String | Nil
-      nil
-    end
-  end
-
-  struct BooleanDataValue < DataValue
-    getter val : Bool
-
-    def initialize(@val, tag : Tag | Nil = nil)
-      super tag.nil? ? BooleanDataType.universal_tag : tag
-    end
-
-    def passes_restrictions(restrictions : Restrictions) : String | Nil
-      nil
-    end
-  end
-
-  struct OIDDataValue < DataValue
-    getter val : OID
-
-    def initialize(@val, tag : Tag | Nil = nil)
-      super tag.nil? ? OIDDataType.universal_tag : tag
-    end
-
-    def passes_restrictions(restrictions : Restrictions) : String | Nil
-      nil
-    end
-  end
 
   abstract class DataType
     abstract def decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
@@ -151,7 +19,7 @@ module CrSNMP::BER
       raw = decode_header_raw bytes
 
       if raw[:tag] != final_tag || raw[:primitive] != primitive
-        raise "Invalid tag or P/C biy"
+        raise "Invalid tag or P/C bit"
       end
 
       left = raw[:header_size]
@@ -272,7 +140,7 @@ module CrSNMP::BER
   class ArrayDataType < CompositeDataType
 
     def initialize(@type : DataType)
-      @resolver = TagResolver.new @types
+      @resolver = TagResolver.new @type
     end
 
     def decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
@@ -489,14 +357,14 @@ module CrSNMP::BER
 
     def encode_primitive(data : DataValue) : Array(UInt8)
       if data.is_a?(OctetStringDataValue)
-        Encoder.encode_string data.val
+        data.val
       else
         raise "Invalid data, expected OctetStringDataValue"
       end
     end
 
     def decode_primitive(bytes : Array(UInt8), tag : Tag) : DataValue
-      OctetStringDataValue.new Decoder.decode_string(bytes), tag
+      OctetStringDataValue.new bytes, tag
     end
 
     def primitive_tag : Tag
@@ -516,20 +384,15 @@ module CrSNMP::BER
     getter parent : DataType
     getter type_tag : Tag | Nil
     getter tagging_mode : TaggingMode
-    getter name : String | Nil
     getter restrictions : Restrictions
 
-    def initialize(@type_tag, @parent, @tagging_mode = TaggingMode::Implicit, @name = "", sizer = nil, valuer = nil)
+    def initialize(@type_tag, @parent, @tagging_mode = TaggingMode::Implicit, sizer = nil, valuer = nil)
       @restrictions = Restrictions.new sizer, valuer
-    end
-
-    def to_s
-      @name
     end
 
     protected def do_decode(bytes : Array(UInt8), final_tag : Tag | Nil = nil) : DataValue
       if @type_tag.nil?
-        parent.decode bytes, implicit_tag
+        parent.decode bytes, final_tag
       else
         if @tagging_mode == TaggingMode::Implicit
           parent.decode data, final_tag

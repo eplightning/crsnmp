@@ -1,3 +1,7 @@
+require "../../shared/oid"
+
+include CrSNMP::Shared
+
 module CrSNMP::MIBParser
 
   # import
@@ -38,43 +42,31 @@ module CrSNMP::MIBParser
 
   # types
   abstract struct ExtractedType
-    enum Tag
-      Application
-      Universal
-      ContextSpecific
-      Private
-    end
-
-    enum TagType
-      Implicit
-      Explicit
-    end
-
     property id : Int32 | Nil
-    property tag : Tag
-    property tag_type : TagType | Nil
+    property tag : TagClass
+    property tag_type : TaggingMode | Nil
     property size : ExtractedSize | Nil
     property range : ExtractedSize | Nil
 
     def initialize(@id = nil, tag = nil, tag_type = nil, @size = nil, @range = nil)
       @tag = case tag
       when "APPLICATION"
-        Tag::Application
+        TagClass::Application
       when "UNIVERSAL"
-        Tag::Universal
+        TagClass::Universal
       when "CONTEXT-SPECIFIC"
-        Tag::ContextSpecific
+        TagClass::ContextSpecific
       when "PRIVATE"
-        Tag::Private
+        TagClass::Private
       else
         Tag::ContextSpecific
       end
 
       @tag_type = case tag_type
       when "IMPLICIT"
-        TagType::Implicit
+        TaggingMode::Implicit
       when "EXPLICIT"
-        TagType::Explicit
+        TaggingMode::Explicit
       else
         nil
       end

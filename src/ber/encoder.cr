@@ -1,3 +1,8 @@
+require "../shared/oid"
+require "../shared/tags"
+
+include CrSNMP::Shared
+
 module CrSNMP::BER
 
   class Encoder
@@ -76,10 +81,6 @@ module CrSNMP::BER
       octets[0] |= (negative ? 1 << 7 : 0)
 
       octets
-    end
-
-    def self.encode_string(string : String) : Array(UInt8)
-      string.bytes
     end
 
     def self.encode_oid(oid : OID) : Array(UInt8)
