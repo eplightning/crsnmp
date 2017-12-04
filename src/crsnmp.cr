@@ -1,9 +1,11 @@
 require "./mibparser/*"
 require "./debug/*"
+require "./file_resolver"
+require "./object_tree_builder"
 
 extractor = CrSNMP::MIBParser::Extractor.new
-resolver = CrSNMP::MIBParser::SimpleFileResolver.new "/home/eplightning/Projects/crsnmp"
-builder = CrSNMP::MIBParser::ObjectTreeBuilder.new extractor, resolver
+resolver = CrSNMP::SimpleFileResolver.new "/home/eplightning/Projects/crsnmp"
+builder = CrSNMP::ObjectTreeBuilder.new extractor, resolver
 
 tree = builder.build ["MY-MIB"]
 

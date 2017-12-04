@@ -1,12 +1,12 @@
 module CrSNMP::Debug
 
-  def self.print_object_tree(root : CrSNMP::MIBParser::RootTreeNode)
+  def self.print_object_tree(root : CrSNMP::RootTreeNode)
     root.children.each do |child|
       print_recursive child, root, "-"
     end
   end
 
-  private def self.print_recursive(tree : CrSNMP::MIBParser::TreeNode, root : CrSNMP::MIBParser::RootTreeNode, indent)
+  private def self.print_recursive(tree : CrSNMP::TreeNode, root : CrSNMP::RootTreeNode, indent)
     puts indent + "| " + tree.oid.to_s + ": " + tree.identifier
 
     puts indent + "| " + tree.syntax.to_s
@@ -32,7 +32,7 @@ module CrSNMP::Debug
 
   private def self.print_type(
     syntax : CrSNMP::BER::DataType,
-    root : CrSNMP::MIBParser::RootTreeNode, printer : Proc(String, Nil))
+    root : CrSNMP::RootTreeNode, printer : Proc(String, Nil))
 
     if syntax.is_a?(PrimitiveDataType)
       printer.call "Typ prymitywny: " + syntax.class.name
@@ -58,11 +58,17 @@ module CrSNMP::Debug
     elsif syntax.is_a?(CustomDataType)
       printer.call "Custom: "
 
-      printer.call "Tag: " + (syntax.type_tag.nil? ? "---" : syntax.type_tag.to_s)
-      printer.call "Tag rodzaj: " + (syntax.tagging_mode.to_s)
+      tag = syntax.type_tag
+
+      if !tag.nil?
+        printer.call "Tag: " + tag.to_s
+        printer.call "Tag rodzaj: " + (syntax.tagging_mode.to_s)
+      end
+
       printer.call "Przedział wartości: " + (syntax.restrictions.value.nil? ? "---" : syntax.restrictions.value.to_s)
       printer.call "Rozmiar: " + (syntax.restrictions.size.nil? ? "---" : syntax.restrictions.size.to_s)
 
+      printer.call " >>>>>>>>>>>> "
       print_type syntax.parent, root, printer
     end
   end

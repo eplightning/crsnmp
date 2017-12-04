@@ -28,8 +28,7 @@ module CrSNMP::BER
       bytes[left..right]
     end
 
-    protected def decode_header_raw(bytes : Array(UInt8))
-      : NamedTuple(tag: Tag, primitive: Bool, length: Int32, header_size: Int32)
+    protected def decode_header_raw(bytes : Array(UInt8)) : NamedTuple(tag: Tag, primitive: Bool, length: Int32, header_size: Int32)
       decoded_tag = Decoder.decode_tag bytes
       decoded_len = Decoder.decode_length bytes[(decoded_tag[0])..-1]
 
@@ -130,7 +129,7 @@ module CrSNMP::BER
     end
 
     def tags : Array(Tag)
-      [universal_tag]
+      [SequenceDataType.universal_tag]
     end
 
     def self.universal_tag : Tag
@@ -191,20 +190,20 @@ module CrSNMP::BER
       end
     end
 
-    def tags : Array(Tag)
-      [universal_tag]
-    end
-
     def self.universal_tag : Tag
       Tag.new 16, TagClass::Universal
+    end
+
+    def tags : Array(Tag)
+      [ArrayDataType.universal_tag]
     end
   end
 
   class ChoiceDataType < CompositeDataType
     getter items : Hash(String, DataType)
 
-    def initialize(@types)
-      @resolver = TagResolver.new @types
+    def initialize(@items)
+      @resolver = TagResolver.new @items
     end
 
     def decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
@@ -240,7 +239,7 @@ module CrSNMP::BER
     def tags : Array(Tag)
       output = [] of Tag
 
-      @types.each do |k, v|
+      @items.each do |k, v|
         output.concat v.tags
       end
 
@@ -263,7 +262,7 @@ module CrSNMP::BER
     end
 
     def primitive_tag : Tag
-      self.universal_tag
+      IntegerDataType.universal_tag
     end
 
     def self.universal_tag : Tag
@@ -290,7 +289,7 @@ module CrSNMP::BER
     end
 
     def primitive_tag : Tag
-      self.universal_tag
+      OIDDataType.universal_tag
     end
 
     def self.universal_tag : Tag
@@ -317,7 +316,7 @@ module CrSNMP::BER
     end
 
     def primitive_tag : Tag
-      self.universal_tag
+      BooleanDataType.universal_tag
     end
 
     def self.universal_tag : Tag
@@ -344,7 +343,7 @@ module CrSNMP::BER
     end
 
     def primitive_tag : Tag
-      self.universal_tag
+      NullDataType.universal_tag
     end
 
     def self.universal_tag : Tag
@@ -371,7 +370,7 @@ module CrSNMP::BER
     end
 
     def primitive_tag : Tag
-      self.universal_tag
+      OctetStringDataType.universal_tag
     end
 
     def self.universal_tag : Tag
@@ -444,10 +443,12 @@ module CrSNMP::BER
     end
 
     def tags : Array(Tag)
-      if @type_tag.nil?
+      tag = @type_tag
+
+      if tag.nil?
         parent.tags
       else
-        [@type_tag]
+        [tag]
       end
     end
   end

@@ -1,7 +1,7 @@
 require "./ber/*"
 require "./mibparser/extractor/*"
 require "./shared/oid"
-require "./shared/tag"
+require "./shared/tags"
 
 include CrSNMP::MIBParser
 include CrSNMP::BER
@@ -11,7 +11,7 @@ module CrSNMP
 
   class MIBBERTypeConverter
 
-    def initialize(@global_types : Hash(String, TypeDefinitionSymbol))
+    def initialize(@global_types : Hash(String, ExtractedType) = {} of String => ExtractedType)
       @resolved = {} of String => DataType
     end
 
@@ -27,8 +27,7 @@ module CrSNMP
       tag = id.nil? ? nil : Tag.new(id, extracted.tag)
       parent = create_direct extracted
 
-      # todo restrictions
-      CustomDataType.new tag, parent, mode
+      CustomDataType.new tag, parent, mode, create_restriction(extracted.size), create_restriction(extracted.range)
     end
 
     private def create_direct(extracted : ExtractedType) : DataType
@@ -50,14 +49,24 @@ module CrSNMP
           raise "Unknown primitive type"
         end
       elsif extracted.is_a?(ChoiceExtractedType)
-        choices = extracted.choices.map_with_index do |sub, i|
-          create_wrapped sub
+        items = {} of String => DataType
+
+        i = 0
+
+        extracted.choices.each do |k, sub|
+          items[k] = create_wrapped sub
+          i += 1
         end
 
-        ChoiceDataType.new choices
+        ChoiceDataType.new items
       elsif extracted.is_a?(SequenceExtractedType)
-        items = extracted.items.map_with_index do |sub, i|
-          create_wrapped sub
+        items = {} of String => DataType
+
+        i = 0
+
+        extracted.items.each do |k, sub|
+          items[k] = create_wrapped sub
+          i += 1
         end
 
         SequenceDataType.new items
@@ -65,6 +74,18 @@ module CrSNMP
         ArrayDataType.new create_wrapped(extracted.item)
       else
         raise "Unconvertable type"
+      end
+    end
+
+    private def create_restriction(extracted : ExtractedSize | Nil) : Restriction | Nil
+      if extracted.nil?
+        nil
+      elsif extracted.is_a?(RangeExtractedSize)
+        RangeRestriction.new extracted.left, extracted.right
+      elsif extracted.is_a?(NumberExtractedSize)
+        NumberRestriction.new extracted.number
+      else
+        nil
       end
     end
 

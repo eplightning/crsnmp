@@ -14,7 +14,7 @@ module CrSNMP::BER
           if @map.has_key? tag
             raise "Duplicate tag"
           else
-            @map[tag] = {"item",v}
+            @map[tag] = {"item",items}
           end
         end
       else

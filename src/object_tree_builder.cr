@@ -1,4 +1,4 @@
-require "./extractor/extractor"
+require "./mibparser/extractor"
 require "./file_resolver"
 require "./object_tree"
 require "./mib_to_ber"
@@ -11,6 +11,7 @@ module CrSNMP
     alias NodeMap = Hash(String, TreeNode)
 
     def initialize(@extractor : Extractor, @resolver : FileResolver)
+      @converter = MIBBERTypeConverter.new
     end
 
     def build(entrypoints : Array(String)) : RootTreeNode
@@ -29,7 +30,7 @@ module CrSNMP
 
     private def insert_initial_nodes(root : RootTreeNode, node_map : NodeMap, symbol_map : SymbolMap)
       iso_symbol = ObjectIdentifierSymbol.new("iso", "iso", ExtractedOID.new)
-      iso_node = TreeNode.new iso_symbol, OID.new(nil, 1)
+      iso_node = TreeNode.new nil, nil, OID.new(nil, 1), "iso"
 
       node_map["iso::iso"] = iso_node
       symbol_map["iso"] = iso_symbol
@@ -49,10 +50,10 @@ module CrSNMP
       end
 
       # get all global types
-      types = {} of String => TypeDefinitionSymbol
+      types = {} of String => ExtractedType
       all_symbols.each do |symbol_name, symbol|
         if symbol.is_a?(TypeDefinitionSymbol)
-          types[symbol_name] = symbol
+          types[symbol_name] = symbol.definition
         end
       end
 

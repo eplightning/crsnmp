@@ -1,4 +1,5 @@
 require "../../shared/oid"
+require "../../shared/tags"
 
 include CrSNMP::Shared
 
@@ -41,7 +42,7 @@ module CrSNMP::MIBParser
   end
 
   # types
-  abstract struct ExtractedType
+  abstract class ExtractedType
     property id : Int32 | Nil
     property tag : TagClass
     property tag_type : TaggingMode | Nil
@@ -59,7 +60,7 @@ module CrSNMP::MIBParser
       when "PRIVATE"
         TagClass::Private
       else
-        Tag::ContextSpecific
+        TagClass::ContextSpecific
       end
 
       @tag_type = case tag_type
@@ -73,7 +74,7 @@ module CrSNMP::MIBParser
     end
   end
 
-  struct UnknownExtractedType < ExtractedType
+  class UnknownExtractedType < ExtractedType
     property definition : String
 
     def initialize(@definition)
@@ -85,7 +86,7 @@ module CrSNMP::MIBParser
     end
   end
 
-  struct SymbolExtractedType < ExtractedType
+  class SymbolExtractedType < ExtractedType
     property symbol_name : String
 
     def initialize(@symbol_name, @id = nil, tag = nil, tag_type = nil, @size = nil, @range = nil)
@@ -93,7 +94,7 @@ module CrSNMP::MIBParser
     end
   end
 
-  struct PrimitiveExtractedType < ExtractedType
+  class PrimitiveExtractedType < ExtractedType
     enum Primitive
       OctetString
       Integer
@@ -121,7 +122,7 @@ module CrSNMP::MIBParser
     end
   end
 
-  struct ChoiceExtractedType < ExtractedType
+  class ChoiceExtractedType < ExtractedType
     property choices : Hash(String, ExtractedType)
 
     def initialize(@choices, @id = nil, tag = nil, tag_type = nil, @size = nil, @range = nil)
@@ -129,7 +130,7 @@ module CrSNMP::MIBParser
     end
   end
 
-  struct SequenceExtractedType < ExtractedType
+  class SequenceExtractedType < ExtractedType
     property items : Hash(String, ExtractedType)
 
     def initialize(@items, @id = nil, tag = nil, tag_type = nil, @size = nil, @range = nil)
@@ -137,7 +138,7 @@ module CrSNMP::MIBParser
     end
   end
 
-  struct SequenceOfExtractedType < ExtractedType
+  class SequenceOfExtractedType < ExtractedType
     property item : ExtractedType
 
     def initialize(@item, @id = nil, tag = nil, tag_type = nil, @size = nil, @range = nil)

@@ -1,5 +1,6 @@
 require "./extracted_types"
 require "../../shared/oid"
+require "../../shared/object_type"
 
 include CrSNMP::Shared
 
