@@ -68,7 +68,7 @@ module CrSNMP::BER
         end
       end
 
-      target_size = target_size > 8 ? 8 : target_size
+      target_size = target_size > 8 ? 8 : (target_size <= 0 ? 1 : target_size)
       octets = [] of UInt8
 
       (target_size - 1).downto(0) do |i|

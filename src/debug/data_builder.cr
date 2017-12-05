@@ -32,7 +32,9 @@ module CrSNMP::Debug
 
         first = input.items.first_value
 
-        do_build first
+        out = do_build first
+        out.tag = first.tags[0]
+        out
       elsif input.is_a?(SequenceDataType)
         items = [] of SequenceDataValue::Item
 
