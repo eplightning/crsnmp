@@ -25,7 +25,7 @@ oid = OID.new nil, [
 
 item1 = SequenceDataValue::Item.new(IntegerDataValue.new 500)
 item2 = SequenceDataValue::Item.new(
-  TagWrapDataValue.new(Tag.new(55, TagClass::Application), OctetStringDataValue.new([1_u8, 2_u8, 3_u8, 4_u8], Tag.new(0, TagClass::Application)))
+  OctetStringDataValue.new([1_u8, 2_u8, 3_u8, 4_u8], Tag.new(0, TagClass::Application))
 )
 
 value = SequenceDataValue.new([item1, item2])

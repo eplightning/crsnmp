@@ -79,7 +79,6 @@ module CrSNMP::BER
     getter items : Hash(String, DataType)
 
     def initialize(@items)
-      @resolver = TagResolver.new @items
     end
 
     def decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
@@ -88,18 +87,11 @@ module CrSNMP::BER
 
       items = [] of SequenceDataValue::Item
 
-      while contents.size > 0
+      @items.each do |k, v|
         raw = decode_header_raw contents
-
-        resolved_type = @resolver.resolve? raw[:tag]
-
-        if resolved_type.nil?
-          raise "Invalid sequence item tag"
-        end
-
         item_bytes = contents[0...(raw[:length] + raw[:header_size])]
-        item_data = resolved_type[1].decode item_bytes
-        items << SequenceDataValue::Item.new item_data, resolved_type[0]
+        item_data = v.decode item_bytes
+        items << SequenceDataValue::Item.new item_data, k
 
         contents = contents[(raw[:length] + raw[:header_size])..-1]
       end
@@ -111,14 +103,14 @@ module CrSNMP::BER
       if data.is_a?(SequenceDataValue)
         content = [] of UInt8
 
-        data.items.each do |i|
-          resolved_type = @resolver.resolve? i.data.tag
+        if data.items.size != @items.size
+          raise "data.items.size != @items.size"
+        end
 
-          if resolved_type.nil?
-            raise "Invalid sequence item tag"
-          end
-
-          content.concat resolved_type[1].encode(i.data)
+        i = 0
+        @items.each do |k, v|
+          content.concat v.encode(data.items[i].data)
+          i += 1
         end
 
         final_tag = implicit_tag.nil? ? SequenceDataType.universal_tag : implicit_tag
