@@ -9,10 +9,10 @@ IMPORTS
 
 magia      OBJECT IDENTIFIER ::= { mgmt 1 }
 
-JaPierdole ::= [1] IMPLICIT OBJECT IDENTIFIER
-
-DisplayString ::= [2]
-    NULL
+JaPierdole ::= SEQUENCE {
+    dupa INTEGER,
+    niga [APPLICATION 55] NetworkAddress
+}
 
 sysDescr OBJECT-TYPE
     SYNTAX  JaPierdole

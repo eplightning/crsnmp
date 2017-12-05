@@ -441,7 +441,7 @@ module CrSNMP::BER
         if @tagging_mode == TaggingMode::Implicit
           parent.encode data, final_tag
         else
-          parent_encoded = parent.encode data
+          parent_encoded = parent.encode (data.is_a?(TagWrapDataValue) ? data.wrapped : data)
           encode_content parent_encoded, false, final_tag
         end
       end

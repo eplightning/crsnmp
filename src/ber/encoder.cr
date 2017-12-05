@@ -104,13 +104,9 @@ module CrSNMP::BER
       octets = [0_u8, 0_u8, 0_u8, 0_u8, 0_u8]
       remainders = [] of UInt8
 
-      puts idx
-
       4.times do |ti|
         octet = (idx & 0xFF).to_u8
         idx = idx >> 8
-
-        puts remainders
 
         new_remainders = [] of UInt8
 

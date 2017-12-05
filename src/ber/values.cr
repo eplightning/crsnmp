@@ -7,16 +7,32 @@ include CrSNMP::Shared
 
 module CrSNMP::BER
 
-  abstract struct DataValue
+  abstract class DataValue
     property tag : Tag
 
     def initialize(@tag)
     end
 
+    def to_s(io : IO) : Nil
+      inspect(io)
+    end
+
     abstract def passes_restrictions(restrictions : Restrictions) : String | Nil
   end
 
-  struct SequenceDataValue < DataValue
+  class TagWrapDataValue < DataValue
+    property wrapped : DataValue
+
+    def initialize(@tag, @wrapped)
+      super @tag
+    end
+
+    def passes_restrictions(restrictions : Restrictions) : String | Nil
+      nil
+    end
+  end
+
+  class SequenceDataValue < DataValue
     struct Item
       getter data : DataValue
       getter name : String | Nil
@@ -40,7 +56,7 @@ module CrSNMP::BER
     end
   end
 
-  struct IntegerDataValue < DataValue
+  class IntegerDataValue < DataValue
     getter val : Int64
 
     def initialize(val : Int32 | Int64, tag : Tag | Nil = nil)
@@ -67,7 +83,7 @@ module CrSNMP::BER
     end
   end
 
-  struct NullDataValue < DataValue
+  class NullDataValue < DataValue
     def initialize(tag : Tag | Nil = nil)
       super tag.nil? ? NullDataType.universal_tag : tag
     end
@@ -77,7 +93,7 @@ module CrSNMP::BER
     end
   end
 
-  struct OctetStringDataValue < DataValue
+  class OctetStringDataValue < DataValue
     getter val : Array(UInt8)
 
     def initialize(@val, tag : Tag | Nil = nil)
@@ -108,7 +124,7 @@ module CrSNMP::BER
     end
   end
 
-  struct BooleanDataValue < DataValue
+  class BooleanDataValue < DataValue
     getter val : Bool
 
     def initialize(@val, tag : Tag | Nil = nil)
@@ -120,7 +136,7 @@ module CrSNMP::BER
     end
   end
 
-  struct OIDDataValue < DataValue
+  class OIDDataValue < DataValue
     getter val : OID
 
     def initialize(@val, tag : Tag | Nil = nil)
