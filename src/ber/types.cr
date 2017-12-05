@@ -349,6 +349,55 @@ module CrSNMP::BER
 
   class OctetStringDataType < PrimitiveDataType
 
+    def decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
+      final_tag = (implicit_tag.nil? ? primitive_tag : implicit_tag)
+      raw = decode_header_raw bytes
+
+      if raw[:tag] != final_tag
+        raise "Invalid tag"
+      end
+
+      left = raw[:header_size]
+      right = raw[:header_size] + raw[:length]
+      bytes = bytes[left..right]
+
+      if raw[:primitive]
+        OctetStringDataValue.new bytes, final_tag
+      else
+        OctetStringDataValue.new decode_constructed(bytes), final_tag
+      end
+    end
+
+    private def decode_constructed(bytes : Array(UInt8)) : Array(UInt8)
+      output = [] of UInt8
+
+      while bytes.size > 0
+        raw = decode_header_raw bytes
+
+        if raw[:tag] != primitive_tag
+          raise "Constructed OctetString can only contain OctetStrings"
+        end
+
+        left = raw[:header_size]
+        right = raw[:header_size] + raw[:length]
+        current_bytes = bytes[left..right]
+
+        if bytes.size > right
+          bytes = bytes[right..-1]
+        else
+          bytes = [] of UInt8
+        end
+
+        if raw[:primitive]
+          output.concat current_bytes
+        else
+          output.concat decode_constructed(bytes)
+        end
+      end
+
+      output
+    end
+
     def encode_primitive(data : DataValue) : Array(UInt8)
       if data.is_a?(OctetStringDataValue)
         data.val
