@@ -10,4 +10,14 @@ module CrSNMP::Debug
     end
   end
 
+  def self.get_ber_type(tree : Hash(String, TreeNode), oid : String) : DataType
+    obj = tree[oid]
+    syntax = obj.syntax
+    if syntax.nil?
+      raise "nie ma węzła"
+    else
+      syntax
+    end
+  end
+
 end
