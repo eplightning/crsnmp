@@ -15,10 +15,21 @@ flat_tree = tree.flatten
 obj = flat_tree["1.3.6.1.2.1.1"]
 syntax = obj.syntax
 
-value = OctetStringDataValue.new [1_u8,2_u8,3_u8]
+
+oid = OID.new nil, [
+  OIDFragment.new(1),
+  OIDFragment.new(2),
+  OIDFragment.new(21603836)
+]
+
+value = OIDDataValue.new oid
 
 if !syntax.nil?
-  puts syntax.encode(value)
+  encoded = syntax.encode(value)
+
+  CrSNMP::Debug.print_binary encoded
+
+  puts syntax.decode(encoded)
 end
 
 CrSNMP::Debug.print_object_tree tree

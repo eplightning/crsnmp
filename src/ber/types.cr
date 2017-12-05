@@ -312,7 +312,7 @@ module CrSNMP::BER
     end
 
     def decode_primitive(bytes : Array(UInt8), tag : Tag) : DataValue
-      OIDDataValue.new Decoder.decode_bool(bytes), tag
+      BooleanDataValue.new Decoder.decode_bool(bytes), tag
     end
 
     def primitive_tag : Tag
@@ -393,11 +393,11 @@ module CrSNMP::BER
     end
 
     protected def do_decode(bytes : Array(UInt8), final_tag : Tag | Nil = nil) : DataValue
-      if @type_tag.nil?
-        parent.decode bytes, final_tag
+      if final_tag.nil?
+        parent.decode bytes
       else
         if @tagging_mode == TaggingMode::Implicit
-          parent.decode data, final_tag
+          parent.decode bytes, final_tag
         else
           contents = decode_header bytes, false, final_tag
 
@@ -410,7 +410,10 @@ module CrSNMP::BER
       final_tag = (implicit_tag.nil? ? @type_tag : implicit_tag)
 
       out = do_decode bytes, final_tag
-      out.tag = final_tag
+
+      if !final_tag.nil?
+        out.tag = final_tag
+      end
 
       validation = out.passes_restrictions @restrictions
 
@@ -439,7 +442,7 @@ module CrSNMP::BER
           parent.encode data, final_tag
         else
           parent_encoded = parent.encode data
-          encode_content parent_encoded, true, final_tag
+          encode_content parent_encoded, false, final_tag
         end
       end
     end

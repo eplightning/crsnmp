@@ -9,11 +9,13 @@ IMPORTS
 
 magia      OBJECT IDENTIFIER ::= { mgmt 1 }
 
-DisplayString ::=
-    OCTET STRING
+JaPierdole ::= [1] IMPLICIT OBJECT IDENTIFIER
+
+DisplayString ::= [2]
+    NULL
 
 sysDescr OBJECT-TYPE
-    SYNTAX  DisplayString (SIZE (0..255))
+    SYNTAX  JaPierdole
     ACCESS  read-only
     STATUS  mandatory
     DESCRIPTION

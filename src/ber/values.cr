@@ -43,8 +43,9 @@ module CrSNMP::BER
   struct IntegerDataValue < DataValue
     getter val : Int64
 
-    def initialize(@val, tag : Tag | Nil = nil)
+    def initialize(val : Int32 | Int64, tag : Tag | Nil = nil)
       super tag.nil? ? IntegerDataType.universal_tag : tag
+      @val = val.to_i64
     end
 
     def passes_restrictions(restrictions : Restrictions) : String | Nil
@@ -53,11 +54,11 @@ module CrSNMP::BER
       if !valuer.nil?
         if valuer.is_a?(RangeRestriction)
           if valuer.left > @val || valuer.right < @val
-            "Int range restriction not passed"
+            return "Int range restriction not passed"
           end
         elsif valuer.is_a?(NumberRestriction)
           if valuer.number != @val
-            "Int num restriction not passed"
+            return "Int num restriction not passed"
           end
         end
       end
@@ -94,11 +95,11 @@ module CrSNMP::BER
       if !sizer.nil?
         if sizer.is_a?(RangeRestriction)
           if sizer.left > @val.size || sizer.right < @val.size
-            "Size range restriction not passed"
+            return "Size range restriction not passed"
           end
         elsif sizer.is_a?(NumberRestriction)
           if sizer.number != @val.size
-            "Size num restriction not passed"
+            return "Size num restriction not passed"
           end
         end
       end

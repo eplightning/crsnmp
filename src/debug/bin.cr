@@ -6,7 +6,7 @@ module CrSNMP::Debug
 
       pad = "0" * (8 - bitstring.size)
 
-      puts pad + bitstring
+      puts pad + bitstring + " [" + i.to_s + ']'
     end
   end
 
