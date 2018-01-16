@@ -65,8 +65,6 @@ module CrSNMP
         if symbol.is_a?(ObjectTypeSymbol) || symbol.is_a?(ObjectIdentifierSymbol)
           build_simple_parent(symbol_name, root, node_map, all_symbols)
         elsif symbol.is_a?(TypeDefinitionSymbol)
-          puts symbol.definition
-          puts symbol_name
           root.types[symbol_name] = @converter.convert symbol.definition
         end
       end

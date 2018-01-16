@@ -22,6 +22,16 @@ module CrSNMP::Debug
     str == "1" || str == "true" || str == "y" || str == "t" || str == "yes"
   end
 
+  def self.prompt_string(txt : String) : String
+    str = Readline.readline(txt)
+
+    if str.nil?
+      raise "Readline returned nil"
+    end
+
+    str
+  end
+
   def self.prompt_octet(txt : String) : Array(UInt8)
     str = Readline.readline(txt)
 

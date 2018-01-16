@@ -26,19 +26,20 @@ module CrSNMP::Debug
         user = CrSNMP::Debug.prompt_oid "Podaj OID: "
         OIDDataValue.new user
       elsif input.is_a?(ChoiceDataType)
-        if input.items.size > 1
-          # raise "Choice z wieloma opcjami nie jest wspierany"
+        puts "Wybierz jeden z dostępnych typów"
+
+        input.items.each do |k, v|
+          puts k
         end
 
-        first = input.items.first_value
+        choice_type = CrSNMP::Debug.prompt_string "Podaj typ: "
+        choice_value = input.items[choice_type]
 
-        out = do_build first
-        out.tag = first.tags[0]
+        out = do_build choice_value
+        out.tag = choice_value.tags[0]
         out
       elsif input.is_a?(SequenceDataType)
         items = [] of SequenceDataValue::Item
-
-        puts input.items
 
         input.items.each do |k, v|
           puts "Element struktury " + k

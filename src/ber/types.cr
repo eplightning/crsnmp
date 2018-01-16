@@ -82,11 +82,8 @@ module CrSNMP::BER
     end
 
     def decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
-      puts "decode"
-      puts bytes
       final_tag = (implicit_tag.nil? ? SequenceDataType.universal_tag : implicit_tag)
       contents = decode_header bytes, false, final_tag
-      puts "out"
       items = [] of SequenceDataValue::Item
 
       @items.each do |k, v|
@@ -206,7 +203,6 @@ module CrSNMP::BER
       end
 
       header = decode_header_raw bytes
-
       resolved_type = @resolver.resolve? header[:tag]
 
       if resolved_type.nil?
@@ -435,11 +431,15 @@ module CrSNMP::BER
       @restrictions = Restrictions.new sizer, valuer
     end
 
-    protected def do_decode(bytes : Array(UInt8), final_tag : Tag | Nil = nil) : DataValue
-      if final_tag.nil?
-        parent.decode bytes
+    protected def do_decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
+      type_tag = @type_tag
+
+      if type_tag.nil?
+        parent.decode bytes, implicit_tag
       else
-        if @tagging_mode == TaggingMode::Implicit
+        final_tag = (implicit_tag.nil? ? type_tag : implicit_tag)
+
+        if @tagging_mode = TaggingMode::Implicit
           parent.decode bytes, final_tag
         else
           contents = decode_header bytes, false, final_tag
@@ -450,11 +450,9 @@ module CrSNMP::BER
     end
 
     def decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
-      final_tag = (implicit_tag.nil? ? @type_tag : implicit_tag)
+      out = do_decode bytes, implicit_tag
 
-      puts "custom"
-      puts final_tag
-      out = do_decode bytes, final_tag
+      final_tag = (implicit_tag.nil? ? @type_tag : implicit_tag)
 
       if !final_tag.nil?
         out.tag = final_tag

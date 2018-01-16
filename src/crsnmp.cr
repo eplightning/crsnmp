@@ -23,7 +23,7 @@ extractor = CrSNMP::MIBParser::Extractor.new
 resolver = CrSNMP::SimpleFileResolver.new opt_path
 builder = CrSNMP::ObjectTreeBuilder.new extractor, resolver
 
-tree = builder.build [opt_mib, "SNMPv2-PDU"]
+tree = builder.build [opt_mib, "RFC1157-SNMP"]
 flat_tree = tree.flatten
 
 # 1.3.6.1.2.1.1.1 sysDescr
@@ -58,7 +58,7 @@ elsif opt_dectest
 else
   # requested_oid = CrSNMP::Debug.prompt_oid "Podaj OID obiektu który chcesz zbudować: "
   # syntax = CrSNMP::Debug.get_ber_type flat_tree, requested_oid.to_s
-  syntax = tree.types["PDUs"]
+  syntax = tree.types["Message"]
 
   builder = CrSNMP::Debug::DataBuilder.new
 
