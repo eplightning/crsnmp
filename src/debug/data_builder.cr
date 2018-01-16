@@ -27,7 +27,7 @@ module CrSNMP::Debug
         OIDDataValue.new user
       elsif input.is_a?(ChoiceDataType)
         if input.items.size > 1
-          raise "Choice z wieloma opcjami nie jest wspierany"
+          # raise "Choice z wieloma opcjami nie jest wspierany"
         end
 
         first = input.items.first_value
@@ -37,6 +37,8 @@ module CrSNMP::Debug
         out
       elsif input.is_a?(SequenceDataType)
         items = [] of SequenceDataValue::Item
+
+        puts input.items
 
         input.items.each do |k, v|
           puts "Element struktury " + k

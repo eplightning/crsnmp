@@ -1,0 +1,75 @@
+RFC1157-SNMP DEFINITIONS ::= BEGIN
+
+IMPORTS
+    ObjectName, ObjectSyntax, NetworkAddress, IpAddress, TimeTicks
+        FROM RFC1155-SMI;
+
+
+    -- top-level message
+
+
+    -- protocol data units
+
+    PDUs ::=
+            CHOICE {
+                        get-request
+                            GetRequest-PDU,
+
+                        get-next-request
+                            GetNextRequest-PDU,
+
+                        get-response
+                            GetResponse-PDU,
+
+                        set-request
+                            SetRequest-PDU
+                    }
+
+
+          GetRequest-PDU ::=
+              [0]
+                  IMPLICIT PDU
+
+          GetNextRequest-PDU ::=
+              [1]
+                  IMPLICIT PDU
+
+          GetResponse-PDU ::=
+              [2]
+                  IMPLICIT PDU
+
+          SetRequest-PDU ::=
+              [3]
+                  IMPLICIT PDU
+
+          PDU ::=
+                  SEQUENCE {
+                     request-id
+                          INTEGER,
+
+                      error-status      -- sometimes ignored
+                          INTEGER,
+
+                      error-index       -- sometimes ignored
+                         INTEGER,
+
+                      variable-bindings -- values are sometimes ignored
+                          VarBindList
+                  }
+
+          -- variable bindings
+
+          VarBind ::=
+                  SEQUENCE {
+                      name
+                          ObjectName,
+
+                      value
+                          ObjectSyntax
+                  }
+
+         VarBindList ::=
+                  SEQUENCE OF 
+                    VarBind
+
+         END

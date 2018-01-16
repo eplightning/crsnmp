@@ -6,8 +6,9 @@ module CrSNMP
 
   class RootTreeNode
     property children : Array(TreeNode)
+    property types : Hash(String, DataType)
 
-    def initialize(@children = [] of TreeNode)
+    def initialize(@children = [] of TreeNode, @types = {} of String => DataType)
     end
 
     def flatten : Hash(String, TreeNode)

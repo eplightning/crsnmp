@@ -19,7 +19,7 @@ module CrSNMP::BER
       raw = decode_header_raw bytes
 
       if raw[:tag] != final_tag || raw[:primitive] != primitive
-        raise "Invalid tag or P/C bit"
+        raise "Invalid tag or P/C bit " + raw[:tag].to_s + " " + final_tag.to_s
       end
 
       left = raw[:header_size]
@@ -82,9 +82,11 @@ module CrSNMP::BER
     end
 
     def decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
+      puts "decode"
+      puts bytes
       final_tag = (implicit_tag.nil? ? SequenceDataType.universal_tag : implicit_tag)
       contents = decode_header bytes, false, final_tag
-
+      puts "out"
       items = [] of SequenceDataValue::Item
 
       @items.each do |k, v|
@@ -450,6 +452,8 @@ module CrSNMP::BER
     def decode(bytes : Array(UInt8), implicit_tag : Tag | Nil = nil) : DataValue
       final_tag = (implicit_tag.nil? ? @type_tag : implicit_tag)
 
+      puts "custom"
+      puts final_tag
       out = do_decode bytes, final_tag
 
       if !final_tag.nil?
