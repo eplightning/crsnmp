@@ -5,7 +5,7 @@ require "./object_tree_builder"
 require "./ber/values"
 require "option_parser"
 
-opt_mib = "RFC1213-MIB"
+opt_mib = "CUSTOM-MIB"
 opt_path = "/home/eplightning/Projects/crsnmp"
 opt_tree = false
 opt_dectest = false
@@ -56,9 +56,9 @@ elsif opt_dectest
   puts "Zdekodowany AtEntry (0)"
   puts atSyntax.decode atEntry
 else
-  # requested_oid = CrSNMP::Debug.prompt_oid "Podaj OID obiektu który chcesz zbudować: "
-  # syntax = CrSNMP::Debug.get_ber_type flat_tree, requested_oid.to_s
-  syntax = tree.types["Message"]
+  requested_oid = CrSNMP::Debug.prompt_oid "Podaj OID obiektu który chcesz zbudować: "
+  syntax = CrSNMP::Debug.get_ber_type flat_tree, requested_oid.to_s
+  # syntax = tree.types["Message"]
 
   builder = CrSNMP::Debug::DataBuilder.new
 

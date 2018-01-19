@@ -1,0 +1,20 @@
+CUSTOM-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+        private, NetworkAddress, IpAddress, Counter, Gauge,
+                TimeTicks
+            FROM RFC1155-SMI
+        OBJECT-TYPE
+                FROM RFC-1212;
+
+mega-mib      OBJECT IDENTIFIER ::= { private 1234 }
+
+customInteger OBJECT-TYPE
+    SYNTAX  INTEGER
+    ACCESS  read-write
+    STATUS  mandatory
+    DESCRIPTION
+            "Magiczny opis."
+    ::= { mega-mib 6 }
+
+END
