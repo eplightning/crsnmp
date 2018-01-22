@@ -5,6 +5,8 @@ require "./object_tree_builder"
 require "./ber/values"
 require "option_parser"
 require "./server"
+require "./data_source"
+require "./data_sources/*"
 
 opt_mib = "CUSTOM-MIB"
 opt_path = "/home/eplightning/Projects/crsnmp"
@@ -57,7 +59,18 @@ elsif opt_dectest
   puts "Zdekodowany AtEntry (0)"
   puts atSyntax.decode atEntry
 else
-  server = CrSNMP::Server.new tree
+  src = CrSNMP::DataManager.new
+
+  src.register_source CrSNMP::DataSources::MemoryIntegerDataSource.new(
+    CrSNMP::Shared::OID.from_string("1.3.6.1.4.1234.6"),
+    5_i64
+  )
+
+  src.register_source CrSNMP::DataSources::TimeDataSource.new(
+    CrSNMP::Shared::OID.from_string("1.3.6.1.4.1234.7")
+  )
+
+  server = CrSNMP::Server.new tree, src
 
   server.run
   # requested_oid = CrSNMP::Debug.prompt_oid "Podaj OID obiektu który chcesz zbudować: "

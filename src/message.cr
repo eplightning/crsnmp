@@ -1,4 +1,5 @@
 require "./shared/oid"
+require "./shared/tags"
 require "./ber/values"
 
 include CrSNMP::Shared
@@ -34,14 +35,48 @@ module CrSNMP
     property community : String
     property pdu : PDU
 
-    def to_s(io : IO) : Nil
-      inspect(io)
-    end
-
     def initialize
       @version = 0_i64
       @community = ""
       @pdu = PDU.new
+    end
+
+    def to_data : BER::DataValue
+      data_msg = BER::SequenceDataValue.new([] of SequenceDataValue::Item)
+      pdu_tag = Tag.new @pdu.pdu_type.to_i32, TagClass::ContextSpecific
+      pdu_msg = BER::SequenceDataValue.new([] of SequenceDataValue::Item, pdu_tag)
+      bindings = BER::SequenceDataValue.new([] of SequenceDataValue::Item)
+
+      data_msg.items << SequenceDataValue::Item.new(IntegerDataValue.new(@version), "version")
+      data_msg.items << SequenceDataValue::Item.new(OctetStringDataValue.new(@community.bytes), "community")
+      data_msg.items << SequenceDataValue::Item.new(pdu_msg, "data")
+
+      pdu_msg.items << SequenceDataValue::Item.new(IntegerDataValue.new(@pdu.request), "request-id")
+      pdu_msg.items << SequenceDataValue::Item.new(IntegerDataValue.new(@pdu.error_status), "error-status")
+      pdu_msg.items << SequenceDataValue::Item.new(IntegerDataValue.new(@pdu.error_index), "error-index")
+      pdu_msg.items << SequenceDataValue::Item.new(bindings, "variable-bindings")
+
+      @pdu.bindings.each do |oid, value|
+        item = BER::SequenceDataValue.new([] of SequenceDataValue::Item)
+        item.items << SequenceDataValue::Item.new(OIDDataValue.new(oid), "name")
+        item.items << SequenceDataValue::Item.new(value, "value")
+
+        bindings.items << SequenceDataValue::Item.new(item, "item")
+      end
+
+      data_msg
+    end
+
+    def to_s(io : IO) : Nil
+      inspect(io)
+    end
+
+    def self.as_response_to(request_msg : Message) : Message
+      response = Message.new
+      response.community = request_msg.community
+      response.pdu.pdu_type = PDUType::GetResponse
+      response.pdu.request = request_msg.pdu.request
+      response
     end
 
     def self.from_data(data : BER::DataValue) : Message
