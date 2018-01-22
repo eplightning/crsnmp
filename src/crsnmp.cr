@@ -4,6 +4,7 @@ require "./file_resolver"
 require "./object_tree_builder"
 require "./ber/values"
 require "option_parser"
+require "./server"
 
 opt_mib = "CUSTOM-MIB"
 opt_path = "/home/eplightning/Projects/crsnmp"
@@ -56,20 +57,23 @@ elsif opt_dectest
   puts "Zdekodowany AtEntry (0)"
   puts atSyntax.decode atEntry
 else
-  requested_oid = CrSNMP::Debug.prompt_oid "Podaj OID obiektu który chcesz zbudować: "
-  syntax = CrSNMP::Debug.get_ber_type flat_tree, requested_oid.to_s
+  server = CrSNMP::Server.new tree
+
+  server.run
+  # requested_oid = CrSNMP::Debug.prompt_oid "Podaj OID obiektu który chcesz zbudować: "
+  # syntax = CrSNMP::Debug.get_ber_type flat_tree, requested_oid.to_s
   # syntax = tree.types["Message"]
 
-  builder = CrSNMP::Debug::DataBuilder.new
+  #builder = CrSNMP::Debug::DataBuilder.new
 
-  value = builder.build syntax
+  #value = builder.build syntax
 
-  puts "Przed zakodowaniem"
-  puts value
-  puts "Zakodowana wartość"
-  encoded = syntax.encode value
-  CrSNMP::Debug.print_binary encoded
-  puts "Zdekodowana wartość"
-  decoded = syntax.decode encoded
-  puts decoded
+  #puts "Przed zakodowaniem"
+  #puts value
+  #puts "Zakodowana wartość"
+  #encoded = syntax.encode value
+  #CrSNMP::Debug.print_binary encoded
+  #puts "Zdekodowana wartość"
+  #decoded = syntax.decode encoded
+  #puts decoded
 end
