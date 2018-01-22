@@ -27,7 +27,6 @@ resolver = CrSNMP::SimpleFileResolver.new opt_path
 builder = CrSNMP::ObjectTreeBuilder.new extractor, resolver
 
 tree = builder.build [opt_mib, "RFC1157-SNMP"]
-flat_tree = tree.flatten
 
 # 1.3.6.1.2.1.1.1 sysDescr
 # 1.3.6.1.2.1.1.3 sysUptime
@@ -35,29 +34,21 @@ flat_tree = tree.flatten
 if opt_tree
   CrSNMP::Debug.print_object_tree tree
 elsif opt_dectest
-  #udp UdpEntry ::=
-  #{
-  # udpLocalAddress '11010001000110101101000100011010'B
-  # udpLocalPort 314
-  #}
-  # 1.3.6.1.2.1.7.5.1
-  udpEntry = [0x30_u8, 0x0A_u8, 0x40_u8, 0x04_u8, 0xD1_u8, 0x1A_u8, 0xD1_u8, 0x1A_u8, 0x02_u8, 0x02_u8, 0x01_u8, 0x3A_u8]
-  udpSyntax = CrSNMP::Debug.get_ber_type flat_tree, "1.3.6.1.2.1.7.5.1"
-  puts "Zdekodowany UdpEntry (port 314)"
-  puts udpSyntax.decode udpEntry
+  flat_tree = tree.flatten
+  requested_oid = CrSNMP::Debug.prompt_oid "Podaj OID obiektu który chcesz zbudować: "
+  syntax = CrSNMP::Debug.get_ber_type flat_tree, requested_oid.to_s
+  builder = CrSNMP::Debug::DataBuilder.new
 
-  #entry AtEntry ::= {
-  #atIfIndex 0,
-  #atPhysAddress '10101010'H,
-  #atNetAddress internet '10101010'H
-  #}
-  # 300F0201 00040410 10101040 04101010 10
-  # 1.3.6.1.2.1.3.1.1
-  atEntry = [0x30_u8, 0x0F_u8, 0x02_u8, 0x01_u8, 0x00_u8, 0x04_u8, 0x04_u8, 0x10_u8,
-  0x10_u8, 0x10_u8, 0x10_u8, 0x40_u8, 0x04_u8, 0x10_u8, 0x10_u8, 0x10_u8, 0x10_u8]
-  atSyntax = CrSNMP::Debug.get_ber_type flat_tree, "1.3.6.1.2.1.3.1.1"
-  puts "Zdekodowany AtEntry (0)"
-  puts atSyntax.decode atEntry
+  value = builder.build syntax
+
+  puts "Przed zakodowaniem"
+  puts value
+  puts "Zakodowana wartość"
+  encoded = syntax.encode value
+  CrSNMP::Debug.print_binary encoded
+  puts "Zdekodowana wartość"
+  decoded = syntax.decode encoded
+  puts decoded
 else
   src = CrSNMP::DataManager.new
 
@@ -73,20 +64,4 @@ else
   server = CrSNMP::Server.new tree, src
 
   server.run
-  # requested_oid = CrSNMP::Debug.prompt_oid "Podaj OID obiektu który chcesz zbudować: "
-  # syntax = CrSNMP::Debug.get_ber_type flat_tree, requested_oid.to_s
-  # syntax = tree.types["Message"]
-
-  #builder = CrSNMP::Debug::DataBuilder.new
-
-  #value = builder.build syntax
-
-  #puts "Przed zakodowaniem"
-  #puts value
-  #puts "Zakodowana wartość"
-  #encoded = syntax.encode value
-  #CrSNMP::Debug.print_binary encoded
-  #puts "Zdekodowana wartość"
-  #decoded = syntax.decode encoded
-  #puts decoded
 end
